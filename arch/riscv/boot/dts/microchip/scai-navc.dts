@@ -185,9 +185,9 @@
 	status = "disabled";
 };
 
-&core_pwm0 {
-	status = "disabled";
-};
+//&core_pwm0 {
+//	status = "disabled";
+//};
 
 &fpgadma {
 	status = "okay";
@@ -241,9 +241,9 @@
 	};
 };
 
-&i2c2 {
-	status = "disabled";
-};
+//&i2c2 {
+//	status = "disabled";
+//};
 
 &mac0 {
 	dma-noncoherent;
