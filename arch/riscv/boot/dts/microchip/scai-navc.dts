@@ -27,12 +27,9 @@
 	};
 
 	aliases {
-		ethernet0 = &mac1;
+		ethernet0 = &mac0;
 		serial0 = &mmuart0;
 		serial1 = &mmuart1;
-		//serial2 = &mmuart2;
-		//serial3 = &mmuart3;
-		//serial4 = &mmuart4;
 	};
 
 	chosen {
@@ -43,33 +40,36 @@
 		timebase-frequency = <RTCCLK_FREQ>;
 	};
 
-	//leds {
-	//	compatible = "gpio-leds";
-  //
-	//	led-1 {
-	//		gpios = <&gpio2 16 GPIO_ACTIVE_HIGH>;
-	//		color = <LED_COLOR_ID_RED>;
-	//		label = "led1";
-	//	};
-  //
-	//	led-2 {
-	//		gpios = <&gpio2 17 GPIO_ACTIVE_HIGH>;
-	//		color = <LED_COLOR_ID_RED>;
-	//		label = "led2";
-	//	};
-  //
-	//	led-3 {
-	//		gpios = <&gpio2 18 GPIO_ACTIVE_HIGH>;
-	//		color = <LED_COLOR_ID_AMBER>;
-	//		label = "led3";
-	//	};
-  //
-	//	led-4 {
-	//		gpios = <&gpio2 19 GPIO_ACTIVE_HIGH>;
-	//		color = <LED_COLOR_ID_AMBER>;
-	//		label = "led4";
-	//	};
-	//};
+  /*
+	leds {
+		compatible = "gpio-leds";
+		status = "disabled";
+
+		led-1 {
+			gpios = <&gpio2 16 GPIO_ACTIVE_HIGH>;
+			color = <LED_COLOR_ID_RED>;
+			label = "led1";
+		};
+
+		led-2 {
+			gpios = <&gpio2 17 GPIO_ACTIVE_HIGH>;
+			color = <LED_COLOR_ID_RED>;
+			label = "led2";
+		};
+
+		led-3 {
+			gpios = <&gpio2 18 GPIO_ACTIVE_HIGH>;
+			color = <LED_COLOR_ID_AMBER>;
+			label = "led3";
+		};
+
+		led-4 {
+			gpios = <&gpio2 19 GPIO_ACTIVE_HIGH>;
+			color = <LED_COLOR_ID_AMBER>;
+			label = "led4";
+		};
+	};
+  */
 
 	kernel: memory@80000000 {
 		device_type = "memory";
@@ -107,66 +107,70 @@
 			no-map;
 		};
 
-		//dma_non_cached_low: non-cached-low-buffer {
-		//	compatible = "shared-dma-pool";
-		//	size = <0x0 0x4000000>;
-		//	no-map;
-		//	alloc-ranges = <0x0 0xc4000000 0x0 0x4000000>;
-		//};
+		dma_non_cached_low: non-cached-low-buffer {
+			compatible = "shared-dma-pool";
+			size = <0x0 0x4000000>;
+			no-map;
+			alloc-ranges = <0x0 0xc4000000 0x0 0x4000000>;
+		};
 
-		//dma_non_cached_high: non-cached-high-buffer {
-		//	compatible = "shared-dma-pool";
-		//	size = <0x0 0x10000000>;
-		//	no-map;
-		//	linux,dma-default;
-		//	alloc-ranges = <0x14 0x12000000 0x0 0x10000000>;
-		//};
+		dma_non_cached_high: non-cached-high-buffer {
+			compatible = "shared-dma-pool";
+			size = <0x0 0x10000000>;
+			no-map;
+			linux,dma-default;
+			alloc-ranges = <0x14 0x12000000 0x0 0x10000000>;
+		};
 
-		//fabricbuf0ddrc: buffer@88000000 {
-		//	compatible = "shared-dma-pool";
-		//	reg = <0x0 0x88000000 0x0 0x2000000>;
-		//	no-map;
-		//};
+    /*
+		fabricbuf0ddrc: buffer@88000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x0 0x88000000 0x0 0x2000000>;
+			no-map;
+		};
 
-		//fabricbuf1ddrnc: buffer@c8000000 {
-		//	compatible = "shared-dma-pool";
-		//	reg = <0x0 0xc8000000 0x0 0x2000000>;
-		//	no-map;
-		//};
+		fabricbuf1ddrnc: buffer@c8000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x0 0xc8000000 0x0 0x2000000>;
+			no-map;
+		};
 
-		//fabricbuf2ddrncwcb: buffer@d8000000 {
-		//	compatible = "shared-dma-pool";
-		//	reg = <0x0 0xd8000000 0x0 0x2000000>;
-		//	no-map;
-		//};
+		fabricbuf2ddrncwcb: buffer@d8000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x0 0xd8000000 0x0 0x2000000>;
+			no-map;
+		};
+    */
 	};
 
-	//udmabuf0 {
-	//	compatible = "ikwzm,u-dma-buf";
-	//	device-name = "udmabuf-ddr-c0";
-	//	minor-number = <0>;
-	//	size = <0x0 0x2000000>;
-	//	memory-region = <&fabricbuf0ddrc>;
-	//	sync-mode = <3>;
-	//};
+  /*
+	udmabuf0 {
+		compatible = "ikwzm,u-dma-buf";
+		device-name = "udmabuf-ddr-c0";
+		minor-number = <0>;
+		size = <0x0 0x2000000>;
+		memory-region = <&fabricbuf0ddrc>;
+		sync-mode = <3>;
+	};
 
-	//udmabuf1 {
-	//	compatible = "ikwzm,u-dma-buf";
-	//	device-name = "udmabuf-ddr-nc0";
-	//	minor-number = <1>;
-	//	size = <0x0 0x2000000>;
-	//	memory-region = <&fabricbuf1ddrnc>;
-	//	sync-mode = <3>;
-	//};
+	udmabuf1 {
+		compatible = "ikwzm,u-dma-buf";
+		device-name = "udmabuf-ddr-nc0";
+		minor-number = <1>;
+		size = <0x0 0x2000000>;
+		memory-region = <&fabricbuf1ddrnc>;
+		sync-mode = <3>;
+	};
 
-	//udmabuf2 {
-	//	compatible = "ikwzm,u-dma-buf";
-	//	device-name = "udmabuf-ddr-nc-wcb0";
-	//	minor-number = <2>;
-	//	size = <0x0 0x2000000>;
-	//	memory-region = <&fabricbuf2ddrncwcb>;
-	//	sync-mode = <3>;
-	//};
+	udmabuf2 {
+		compatible = "ikwzm,u-dma-buf";
+		device-name = "udmabuf-ddr-nc-wcb0";
+		minor-number = <2>;
+		size = <0x0 0x2000000>;
+		memory-region = <&fabricbuf2ddrncwcb>;
+		sync-mode = <3>;
+	};
+  */
 };
 
 /*
@@ -177,34 +181,49 @@
  * in the icicle kit schematic and on the icicle kit the can1 pins are
  * routed to J25 header.
  */
+/*
 &can0 {
 	status = "disabled";
 };
+*/
 
+/*
 &can1 {
 	status = "disabled";
 };
+*/
 
-//&core_pwm0 {
-//	status = "disabled";
-//};
+/*
+&core_pwm0 {
+	status = "disabled";
+};
+*/
 
+/*
 &fpgadma {
-	status = "okay";
+	status = "disabled";
 };
+*/
 
+/*
 &fpgalsram {
-	status = "okay";
+	status = "disabled";
 };
+*/
 
+/*
 &gpio2 {
 	status = "disabled";
 };
+*/
 
+/*
 &i2c0 {
 	status = "disabled";
 };
+*/
 
+/*
 &i2c1 {
 	status = "disabled";
 
@@ -240,10 +259,13 @@
 		};
 	};
 };
+*/
 
-//&i2c2 {
-//	status = "disabled";
-//};
+/*
+&i2c2 {
+	status = "disabled";
+};
+*/
 
 &mac0 {
 	dma-noncoherent;
@@ -256,89 +278,115 @@
 	};
 };
 
-//&mac1 {
-//	dma-noncoherent;
-//	status = "okay";
-//	phy-mode = "sgmii";
-//	phy-handle = <&phy1>;
-//
-//	phy1: ethernet-phy@9 {
-//		reg = <9>;
-//	};
-//
-//	phy0: ethernet-phy@8 {
-//		reg = <8>;
-//	};
-//};
+/*
+&mac1 {
+	dma-noncoherent;
+	status = "disabled";
+	phy-mode = "sgmii";
+	phy-handle = <&phy9>;
+
+	phy9: ethernet-phy@9 {
+		reg = <9>;
+	};
+
+	phy8: ethernet-phy@8 {
+		reg = <8>;
+	};
+};
+*/
+
 
 &mbox {
 	status = "okay";
 };
 
-//&mmc {
-//	dma-noncoherent;
-//	bus-width = <4>;
-//	disable-wp;
-//	cap-sd-highspeed;
-//	cap-mmc-highspeed;
-//	mmc-ddr-1_8v;
-//	mmc-hs200-1_8v;
-//	sd-uhs-sdr12;
-//	sd-uhs-sdr25;
-//	sd-uhs-sdr50;
-//	sd-uhs-sdr104;
-//	status = "disabled";
-//};
+/*
+&mmc {
+	dma-noncoherent;
+	bus-width = <4>;
+	disable-wp;
+	cap-sd-highspeed;
+	cap-mmc-highspeed;
+	mmc-ddr-1_8v;
+	mmc-hs200-1_8v;
+	sd-uhs-sdr12;
+	sd-uhs-sdr25;
+	sd-uhs-sdr50;
+	sd-uhs-sdr104;
+	status = "disabled";
+};
+*/
 
 &mmuart1 {
 	status = "okay";
 };
 
+/*
 &mmuart2 {
 	status = "disabled";
 };
+*/
 
+/*
 &mmuart3 {
 	status = "disabled";
 };
+*/
 
+/*
 &mmuart4 {
 	status = "disabled";
 };
+*/
 
+/*
 &pcie {
 	status = "disabled";
 };
+*/
 
 &qspi {
 	status = "okay";
+  flash@0 {
+    compatible = "spi-nand";
+    reg = <0>;
+    spi-max-frequency = <12500000>;
+    spi-tx-bus-width = <4>;
+    spi-rx-bus-width = <4>;
+  };
 };
 
 &refclk {
 	clock-frequency = <100000000>;
 };
 
+/*
 &refclk_ccc {
 	clock-frequency = <50000000>;
 };
+*/
 
 &rtc {
 	status = "okay";
 };
 
+/*
 &spi0 {
 	status = "disabled";
 };
+*/
 
+/*
 &spi1 {
 	status = "disabled";
 };
+*/
 
 &syscontroller {
 	status = "okay";
 };
 
-&syscontroller_qspi {
+//&syscontroller_qspi {
 	/*
 	 * The flash *is* there, but Icicle kits that have engineering sample
 	 * silicon where access to this flash to non-functional. The system
@@ -347,20 +395,22 @@
 	 * it to the flash instead should work though. Pre-production or later
 	 * silicon does not have this issue.
 	 */
-	status = "disabled";
+//	status = "disabled";
 
-	sys_ctrl_flash: flash@0 { // MT25QL01GBBB8ESF-0SIT
-		compatible = "jedec,spi-nor";
-		#address-cells = <1>;
-		#size-cells = <1>;
-		spi-max-frequency = <20000000>;
-		spi-rx-bus-width = <1>;
-		reg = <0>;
-	};
-};
+//	sys_ctrl_flash: flash@0 { // MT25QL01GBBB8ESF-0SIT
+//		compatible = "jedec,spi-nor";
+//		#address-cells = <1>;
+//		#size-cells = <1>;
+//		spi-max-frequency = <20000000>;
+//		spi-rx-bus-width = <1>;
+//		reg = <0>;
+//	};
+//};
 
+/*
 &usb {
 	dma-noncoherent;
 	status = "disabled";
 	dr_mode = "otg";
 };
+*/

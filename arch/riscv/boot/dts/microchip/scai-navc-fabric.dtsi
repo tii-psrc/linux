@@ -17,27 +17,32 @@
 			 <0x20 0x0 0x20 0x0 0x10 0x0>, /* FIC0,HI */
 			 <0x30 0x0 0x30 0x0 0x10 0x0>; /* FIC1,HI */
 
-		//core_pwm0: pwm@40000000 {
-		//	compatible = "microchip,corepwm-rtl-v4";
-		//	reg = <0x0 0x40000000 0x0 0xF0>;
-		//	microchip,sync-update-mask = /bits/ 32 <0>;
-		//	#pwm-cells = <3>;
-		//	clocks = <&ccc_nw CLK_CCC_PLL0_OUT3>;
-		//	status = "disabled";
-		//};
+    /*
+		core_pwm0: pwm@40000000 {
+			compatible = "microchip,corepwm-rtl-v4";
+			reg = <0x0 0x40000000 0x0 0xF0>;
+			microchip,sync-update-mask = /bits/ 32 <0>;
+			#pwm-cells = <3>;
+			clocks = <&ccc_nw CLK_CCC_PLL0_OUT3>;
+			status = "disabled";
+		};
+    */
 
-		//i2c2: i2c@40000200 {
-		//	compatible = "microchip,corei2c-rtl-v7";
-		//	reg = <0x0 0x40000200 0x0 0x100>;
-		//	#address-cells = <1>;
-		//	#size-cells = <0>;
-		//	clocks = <&ccc_nw CLK_CCC_PLL0_OUT3>;
-		//	interrupt-parent = <&plic>;
-		//	interrupts = <122>;
-		//	clock-frequency = <100000>;
-		//	status = "disabled";
-		//};
+    /*
+		i2c2: i2c@40000200 {
+			compatible = "microchip,corei2c-rtl-v7";
+			reg = <0x0 0x40000200 0x0 0x100>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clocks = <&ccc_nw CLK_CCC_PLL0_OUT3>;
+			interrupt-parent = <&plic>;
+			interrupts = <122>;
+			clock-frequency = <100000>;
+			status = "disabled";
+		};
+    */
 
+    /*
 		fpgadma: dma-controller@60010000 {
 			compatible = "microchip,mpfs-fpga-dma";
 			reg = <0x0 0x60010000 0x0 0x1000>;
@@ -46,15 +51,19 @@
 			#dma-cells = <1>;
 			status = "disabled";
 		};
+    */
 
+    /*
 		fpgalsram: uio@60000000 {
 			compatible = "generic-uio";
 			linux,uio-name = "fpga_lsram";
 			reg = <0x0 0x60000000 0x0 0x1000>;
 			status = "disabled";
 		};
+    */
 	};
 
+  /*
 	ihc: mailbox {
 		compatible = "microchip,miv-ihc";
 		interrupt-parent = <&plic>;
@@ -63,15 +72,21 @@
 		#mbox-cells = <1>;
 		status = "disabled";
 	};
+  */
 
+  /*
 	mpfs_dma_proxy: mpfs-dma-proxy {
 		compatible = "microchip,mpfs-dma-proxy";
 		dmas = <&pdma 0>, <&pdma 1>, <&pdma 2>, <&pdma 3>;
 		dma-names = "dma-proxy0", "dma-proxy1", "dma-proxy2", "dma-proxy3";
+		status = "disabled";
 	};
+  */
 
+  /*
 	fabric-pcie-bus@3000000000 {
 		compatible = "simple-bus";
+    status = "disabled";
 		#address-cells = <2>;
 		#size-cells = <2>;
 		ranges = <0x0 0x40000000 0x0 0x40000000 0x0 0x20000000>,
@@ -120,22 +135,29 @@
 			};
 		};
 	};
+  */
 
+  /*
 	refclk_ccc: cccrefclk {
 		compatible = "fixed-clock";
 		#clock-cells = <0>;
 	};
+  */
 
+  /*
 	refclk_ccc: cccrefclk {
 		compatible = "fixed-clock";
 		#clock-cells = <0>;
 	};
+  */
 };
 
+/*
 &ccc_nw {
 	clocks = <&refclk_ccc>, <&refclk_ccc>, <&refclk_ccc>, <&refclk_ccc>,
 		 <&refclk_ccc>, <&refclk_ccc>;
 	clock-names = "pll0_ref0", "pll0_ref1", "pll1_ref0", "pll1_ref1",
 		      "dll0_ref", "dll1_ref";
-	status = "okay";
+	status = "disabled";
 };
+*/
