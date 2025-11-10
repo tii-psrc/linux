@@ -270,7 +270,7 @@
 &mac0 {
 	dma-noncoherent;
 	status = "okay";
-	phy-mode = "sgmii";
+	phy-mode = "mii";
 	phy-handle = <&phy0>;
 
 	phy0: ethernet-phy@0 {

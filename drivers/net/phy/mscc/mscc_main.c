@@ -17,6 +17,8 @@
 #include <linux/of.h>
 #include <linux/netdevice.h>
 #include <dt-bindings/net/mscc-phy-vsc8531.h>
+#include <linux/delay.h>
+#include <linux/io.h>
 #include "mscc_serdes.h"
 #include "mscc.h"
 
@@ -2305,12 +2307,95 @@ static int vsc8584_probe(struct phy_device *phydev)
 	return vsc85xx_dt_led_modes_get(phydev, default_mode);
 }
 
+#define APB_BASE_ADDRESS    0x40000000UL
+#define GPIOs_BASE_ADDRESS  (APB_BASE_ADDRESS + 0x0100L)
+
+#if 0
+#define GPIOs0_BASE_ADDRESS (GPIOs_BASE_ADDRESS +  0)
+#define GPIOs1_BASE_ADDRESS (GPIOs_BASE_ADDRESS + 16)
+#define GPIOs2_BASE_ADDRESS (GPIOs_BASE_ADDRESS + 32)
+#define GPIOs3_BASE_ADDRESS (GPIOs_BASE_ADDRESS + 48)
+#endif
+
+static phys_addr_t gpio_phys = GPIOs_BASE_ADDRESS;
+
+#define N9_ETH_PG 20
+#define L5_ETH_COMA_MODE 2
+#define M9_ETH_nReset 3
+#define R2_ETH_MDINT 17
+#define A18_PWR_ETH_ENA 2
+
+static int scai_dpu_gpio_config(unsigned int gpio_num, unsigned int mask, unsigned int mode)
+{
+	phys_addr_t t_gpio_phys = 0;
+	void __iomem *gpio_addr = NULL;
+	unsigned int data = 0;
+
+	gpio_addr = ioremap(gpio_phys, 64);
+	if (!gpio_addr) {
+		pr_err("FIC0 ioremap failed\n");
+		return -ENOMEM;
+	}
+
+	t_gpio_phys = gpio_phys + (gpio_num * 16);
+
+	data = ioread32(gpio_addr + (gpio_num * 16));
+	printk("[pre]\tdata : 0x%08X @0x%px (phys=0x%pa)\n",
+			data,
+			(void __force *)(gpio_addr + (gpio_num * 16)),
+			&t_gpio_phys);
+
+	if (mode == 0) //clear bit
+		data &= ~mask;
+	else if (mode == 1) //enabled bit
+		data |= mask;
+	else if (mode == 2) //read bit
+		return (data &= mask);
+	else
+		printk("%s: unknown request (%d)...\n", __func__, mode);
+
+	iowrite32(data, gpio_addr + (gpio_num * 16));
+
+	data = ioread32(gpio_addr + (gpio_num * 16));
+	printk("[post]\tdata : 0x%08X @0x%px (phys=0x%pa)\n",
+			data,
+			(void __force *)(gpio_addr + (gpio_num * 16)),
+			&t_gpio_phys);
+
+	return 0;
+}
+
+static int scai_dpu_gpio_init(void)
+{
+	int pg_data = 0;
+
+	scai_dpu_gpio_config(1, BIT(A18_PWR_ETH_ENA), 0);
+	scai_dpu_gpio_config(0, BIT(M9_ETH_nReset), 0);
+
+	mdelay(30);
+	scai_dpu_gpio_config(1, BIT(A18_PWR_ETH_ENA), 1);
+
+	scai_dpu_gpio_config(0, BIT(L5_ETH_COMA_MODE), 0);
+
+	do {
+		mdelay(10);
+		pg_data = scai_dpu_gpio_config(0, BIT(N9_ETH_PG), 2);
+		printk("%s, PG : 0x%08X\n", __func__, pg_data);
+	} while (pg_data == 0);
+
+	scai_dpu_gpio_config(0, BIT(M9_ETH_nReset), 1);
+
+	return 0;
+}
+
 static int vsc85xx_probe(struct phy_device *phydev)
 {
 	struct vsc8531_private *vsc8531;
 	int rate_magic;
 	u32 default_mode[2] = {VSC8531_LINK_1000_ACTIVITY,
 	   VSC8531_LINK_100_ACTIVITY};
+
+	scai_dpu_gpio_init();
 
 	rate_magic = vsc85xx_edge_rate_magic_get(phydev);
 	if (rate_magic < 0)
