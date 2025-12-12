@@ -415,3 +415,134 @@
 	dr_mode = "otg";
 };
 */
+
+&fabric_qspi0 {
+	status = "okay";
+	num-cs = <1>;
+
+	flash1: flash@1 {
+		compatible = "spi-nand";
+		reg = <0x0>;
+		spi-tx-bus-width = <4>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <12500000>;
+	};
+};
+
+&fabric_qspi1 {
+	status = "okay";
+	num-cs = <1>;
+
+	flash2: flash@2 {
+		compatible = "spi-nand";
+		reg = <0x0>;
+		spi-tx-bus-width = <4>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <12500000>;
+	};
+};
+
+&fabric_qspi2 {
+	status = "okay";
+	num-cs = <1>;
+
+	flash3: flash@3 {
+		compatible = "spi-nand";
+		reg = <0x0>;
+		spi-tx-bus-width = <4>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <12500000>;
+	};
+};
+
+&fabric_qspi3 {
+	status = "okay";
+	num-cs = <1>;
+
+	flash4: flash@4 {
+		compatible = "spi-nand";
+		reg = <0x0>;
+		spi-tx-bus-width = <4>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <12500000>;
+	};
+};
+
+&fabric_qspi4 {
+	status = "okay";
+	num-cs = <1>;
+
+	flash5: flash@5 {
+		compatible = "spi-nand";
+		reg = <0x0>;
+		spi-tx-bus-width = <4>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <12500000>;
+	};
+};
+
+&fabric_qspi5 {
+	status = "okay";
+	num-cs = <1>;
+
+	flash6: flash@6 {
+		compatible = "spi-nand";
+		reg = <0x0>;
+		spi-tx-bus-width = <4>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <12500000>;
+	};
+};
+
+&fabric_qspi6 {
+	status = "okay";
+	num-cs = <1>;
+
+	flash7: flash@7 {
+		compatible = "spi-nand";
+		reg = <0x0>;
+		spi-tx-bus-width = <4>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <12500000>;
+	};
+};
+
+&fabric_qspi7 {
+	status = "okay";
+	num-cs = <1>;
+
+	flash8: flash@8 {
+		compatible = "spi-nand";
+		reg = <0x0>;
+		spi-tx-bus-width = <4>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <12500000>;
+	};
+};
+
+&fabric_qspi9 {
+	status = "okay";
+	num-cs = <1>;
+
+	flash9: flash@9 {
+		compatible = "spi-nand";
+		reg = <0x0>;
+		spi-tx-bus-width = <4>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <12500000>;
+	};
+};
+
+&fabric_qspi11 {
+	status = "okay";
+	num-cs = <1>;
+
+	flash10: flash@10 {
+		compatible = "jedec,spi-nor";
+		reg = <0x0>;
+		spi-tx-bus-width = <4>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <10000000>;
+	};
+};
+

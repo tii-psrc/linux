@@ -650,6 +650,15 @@ config SPI_MICROCHIP_CORE_QSPI
 	  PolarFire SoC.
 	  If built as a module, it will be called spi-microchip-core-qspi.
 
+config SPI_SCAI_FPGA_CORE
+	tristate "SCAI FPGA SPI controllers"
+	depends on SPI_MASTER
+	help
+	  This enables the SPI driver for SCAI FPGA SPI controllers.
+	  Say Y or M here if you want to use the "hard" controllers on
+	  PolarFire SoC.
+	  If built as a module, it will be called spi-scai-fpga-core.
+
 config SPI_MT65XX
 	tristate "MediaTek SPI controller"
 	depends on ARCH_MEDIATEK || COMPILE_TEST

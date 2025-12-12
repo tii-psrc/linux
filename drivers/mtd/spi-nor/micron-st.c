@@ -439,6 +439,11 @@ static int micron_st_nor_late_init(struct spi_nor *nor)
 	if (!params->set_4byte_addr_mode)
 		params->set_4byte_addr_mode = spi_nor_set_4byte_addr_mode_wren_en4b_ex4b;
 
+#if defined(CONFIG_SPI_SCAI_FPGA_CORE)
+	printk("nor->params->hwcaps.mask : 0x%08X\n", nor->params->hwcaps.mask);
+	nor->params->hwcaps.mask &= ~SNOR_HWCAPS_READ_1_4_4;
+	printk("nor->params->hwcaps.mask : 0x%08X\n", nor->params->hwcaps.mask);
+#endif
 	return 0;
 }
 
