@@ -186,6 +186,7 @@ static int scai_fpgaqspi_read_op(struct scai_fpgaqspi_priv *p, bool word)
 			} while (status & STATUS2_RX_FIFO_EMPTY);
 
 			data = readl(p->base_regs + SCAI_QSPI_REG_DATA);
+			data = swab32(data);
 #if 0
 			printk("%s-word: data(0x%08X)\n", __func__, data);
 #endif
