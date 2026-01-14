@@ -317,6 +317,11 @@
 };
 */
 
+&mmuart0 {
+	status = "okay";
+	current-speed = <921600>;
+};
+
 &mmuart1 {
 	status = "okay";
 	current-speed = <921600>;
