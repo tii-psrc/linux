@@ -385,4 +385,15 @@ config MTD_PISMO
 
 	  When built as a module, it will be called pismo.ko
 
+config MTD_CONCAT_SCAI
+	tristate "Support for concatenating multiple MTD devices"
+	depends on MTD
+	depends on OF
+	depends on SPI_SCAI_FPGA_CORE
+	help
+		This option enables a device driver that can merge multiple
+		MTD devices (e.g., SPI NAND flashes) into a single virtual
+		MTD device. Useful for creating a large linear flash region
+		from multiple smaller MTD devices.
+
 endmenu

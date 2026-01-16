@@ -171,6 +171,24 @@
 		sync-mode = <3>;
 	};
   */
+
+	/* Create a concatenated device */
+	concat-flash-a {
+		status = "okay";
+		compatible = "mtd-concat-scai";
+		num-subdev = <4>;
+		subdevices = <&flash1 &flash2 &flash3 &flash4>;
+		device-name = "scai_mtd_a";
+	};
+	/* Create a concatenated device */
+	concat-flash-b {
+		status = "okay";
+		compatible = "mtd-concat-scai";
+		num-subdev = <4>;
+		subdevices = <&flash5 &flash6 &flash7 &flash8>;
+		device-name = "scai_mtd_b";
+	};
+
 };
 
 /*
