@@ -96,6 +96,12 @@
 		reg = <0x14 0x12000000 0x0 0x10000000>;
 	};
 
+        ddr_cached_new: memory@ca000000 {
+          device_type = "memory";
+          reg = <0x0 0xca000000 0x0 0x8000000>;
+          status = "okay";
+        };
+
 	reserved-memory {
 		#address-cells = <2>;
 		#size-cells = <2>;
@@ -122,6 +128,30 @@
 			alloc-ranges = <0x14 0x12000000 0x0 0x10000000>;
 		};
 
+		shm_uio1: shm@0xc0000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x0 0xc0000000 0x0 0x8000000>;
+			no-map;
+		};
+
+		shm_uio2: shm@0xc0800000 {
+			compatible = "shared-dma-pool";
+			reg = <0x0 0xc0800000 0x0 0x8000000>;
+			no-map;
+		};
+
+		shm_uio3: shm@0xc1000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x0 0xc1000000 0x0 0x8000000>;
+			no-map;
+		};
+
+		shm_uio4: shm@0xc1800000 {
+			compatible = "shared-dma-pool";
+			reg = <0x0 0xc1800000 0x0 0x8000000>;
+			no-map;
+		};
+
     /*
 		fabricbuf0ddrc: buffer@88000000 {
 			compatible = "shared-dma-pool";
@@ -141,6 +171,30 @@
 			no-map;
 		};
     */
+	};
+
+	uio1 {
+		compatible = "generic-uio";
+		memory-region = <&shm_uio1>;
+		status = "okay";
+	};
+
+	uio2 {
+		compatible = "generic-uio";
+		memory-region = <&shm_uio2>;
+		status = "okay";
+	};
+
+	uio3 {
+		compatible = "generic-uio";
+		memory-region = <&shm_uio3>;
+		status = "okay";
+	};
+
+	uio4 {
+		compatible = "generic-uio";
+		memory-region = <&shm_uio4>;
+		status = "okay";
 	};
 
   /*
