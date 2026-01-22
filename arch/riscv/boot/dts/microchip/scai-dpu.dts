@@ -96,11 +96,13 @@
 		reg = <0x14 0x12000000 0x0 0x10000000>;
 	};
 
+/*
         ddr_cached_new: memory@ca000000 {
           device_type = "memory";
           reg = <0x0 0xca000000 0x0 0x8000000>;
           status = "okay";
         };
+*/
 
 	reserved-memory {
 		#address-cells = <2>;
@@ -130,25 +132,25 @@
 
 		shm_uio1: shm@0xc0000000 {
 			compatible = "shared-dma-pool";
-			reg = <0x0 0xc0000000 0x0 0x8000000>;
+			reg = <0x0 0xc0000000 0x0 0x800000>;
 			no-map;
 		};
 
 		shm_uio2: shm@0xc0800000 {
 			compatible = "shared-dma-pool";
-			reg = <0x0 0xc0800000 0x0 0x8000000>;
+			reg = <0x0 0xc0800000 0x0 0x800000>;
 			no-map;
 		};
 
 		shm_uio3: shm@0xc1000000 {
 			compatible = "shared-dma-pool";
-			reg = <0x0 0xc1000000 0x0 0x8000000>;
+			reg = <0x0 0xc1000000 0x0 0x800000>;
 			no-map;
 		};
 
 		shm_uio4: shm@0xc1800000 {
 			compatible = "shared-dma-pool";
-			reg = <0x0 0xc1800000 0x0 0x8000000>;
+			reg = <0x0 0xc1800000 0x0 0x800000>;
 			no-map;
 		};
 
