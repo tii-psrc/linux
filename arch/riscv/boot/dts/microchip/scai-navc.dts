@@ -33,7 +33,7 @@
 	};
 
 	chosen {
-		stdout-path = "serial1:921600n8";
+		stdout-path = "serial1:1500000n8";
 	};
 
 	cpus {
@@ -337,12 +337,12 @@
 
 &mmuart0 {
 	status = "okay";
-	current-speed = <921600>;
+	current-speed = <1500000>;
 };
 
 &mmuart1 {
 	status = "okay";
-	current-speed = <921600>;
+	current-speed = <1500000>;
 };
 
 /*
