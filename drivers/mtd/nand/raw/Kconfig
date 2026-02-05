@@ -448,6 +448,25 @@ config MTD_NAND_RENESAS
 	  Enables support for the NAND controller found on Renesas R-Car
 	  Gen3 and RZ/N1 SoC families.
 
+config MTD_NAND_HW_ECC_IWAVE
+        tristate "Support for iWave Nand Flash controller with HW ECC"
+        depends on MTD_RAW_NAND
+        help
+          Enables the driver for the iWave Nand Flash controller.
+
+config MTD_NAND_SW_ECC_IWAVE
+        tristate "Support for iWave Nand Flash controller with SW ECC"
+        depends on MTD_RAW_NAND
+        help
+          Enables the driver for the iWave Nand Flash controller.
+
+config MTD_NAND_RAW_IWAVE
+        tristate "Support for iWave Nand Flash controller with RAW data"
+        depends on MTD_RAW_NAND
+        help
+          Enables the driver for the iWave Nand Flash controller.
+
+
 comment "Misc"
 
 config MTD_SM_COMMON
