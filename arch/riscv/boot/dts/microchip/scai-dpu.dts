@@ -31,6 +31,7 @@
 		ethernet0 = &mac0;
 		serial0 = &mmuart0;
 		serial1 = &mmuart1;
+		serial2 = &mmuart2;
 	};
 
 	chosen {
@@ -381,11 +382,10 @@
 	current-speed = <921600>;
 };
 
-/*
 &mmuart2 {
-	status = "disabled";
+	status = "okay";
+	current-speed = <921600>;
 };
-*/
 
 /*
 &mmuart3 {
