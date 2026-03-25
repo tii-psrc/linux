@@ -135,7 +135,7 @@
 		status = "okay";
 		compatible = "mtd-concat-scai";
 		num-subdev = <4>;
-		subdevices = <&flash1 &flash2 &flash3 &flash4>;
+		subdevices = <&flash2 &flash3 &flash4 &flash5>;
 		device-name = "scai_mtd_a";
 	};
 	/* Create a concatenated device */
@@ -143,7 +143,7 @@
 		status = "okay";
 		compatible = "mtd-concat-scai";
 		num-subdev = <4>;
-		subdevices = <&flash5 &flash6 &flash7 &flash8>;
+		subdevices = <&flash6 &flash7 &flash8 &flash9>;
 		device-name = "scai_mtd_b";
 	};
 
@@ -326,32 +326,6 @@
 };
 */
 
-&qspi {
-	status = "okay";
-  flash@0 {
-    compatible = "spi-nand";
-    reg = <0>;
-    spi-max-frequency = <12500000>;
-    spi-tx-bus-width = <4>;
-    spi-rx-bus-width = <4>;
-
-    partitions {
-      compatible = "fixed-partitions";
-      #address-cells = <1>;
-      #size-cells = <1>;
-
-      partition@0 {
-        label = "payload_a";
-        reg = <0 0x00200000>;
-      };
-      partition@200000 {
-        label = "ubi_a";
-        reg = <0x00200000 0x07700000>;
-      };
-    };
-  };
-};
-
 &refclk {
 	clock-frequency = <100000000>;
 };
@@ -411,6 +385,32 @@
 };
 */
 
+&qspi {
+	status = "okay";
+  flash@0 {
+    compatible = "spi-nand";
+    reg = <0>;
+    spi-max-frequency = <12500000>;
+    spi-tx-bus-width = <4>;
+    spi-rx-bus-width = <4>;
+
+    partitions {
+      compatible = "fixed-partitions";
+      #address-cells = <1>;
+      #size-cells = <1>;
+
+      partition@0 {
+        label = "payload_a";
+        reg = <0 0x00200000>;
+      };
+      partition@200000 {
+        label = "ubi_a";
+        reg = <0x00200000 0x07700000>;
+      };
+    };
+  };
+};
+
 &fabric_qspi0 {
 	status = "okay";
 	num-cs = <1>;
@@ -421,6 +421,21 @@
 		spi-tx-bus-width = <4>;
 		spi-rx-bus-width = <4>;
 		spi-max-frequency = <12500000>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "payload_b";
+				reg = <0 0x00200000>;
+			};
+			partition@200000 {
+				label = "ubi_b";
+				reg = <0x00200000 0x07700000>;
+			};
+		};
 	};
 };
 
@@ -515,7 +530,7 @@
 	};
 };
 
-&fabric_qspi9 {
+&fabric_qspi8 {
 	status = "okay";
 	num-cs = <1>;
 
@@ -525,25 +540,10 @@
 		spi-tx-bus-width = <4>;
 		spi-rx-bus-width = <4>;
 		spi-max-frequency = <12500000>;
-
-		partitions {
-			compatible = "fixed-partitions";
-			#address-cells = <1>;
-			#size-cells = <1>;
-
-			partition@0 {
-				label = "payload_b";
-				reg = <0 0x00200000>;
-			};
-			partition@200000 {
-				label = "ubi_b";
-				reg = <0x00200000 0x07700000>;
-			};
-		};
 	};
 };
 
-&fabric_qspi11 {
+&fabric_qspi9 {
 	status = "okay";
 	num-cs = <1>;
 
