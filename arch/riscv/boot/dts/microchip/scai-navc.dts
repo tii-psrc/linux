@@ -334,6 +334,21 @@
     spi-max-frequency = <12500000>;
     spi-tx-bus-width = <4>;
     spi-rx-bus-width = <4>;
+
+    partitions {
+      compatible = "fixed-partitions";
+      #address-cells = <1>;
+      #size-cells = <1>;
+
+      partition@0 {
+        label = "payload_a";
+        reg = <0 0x00200000>;
+      };
+      partition@200000 {
+        label = "ubi_a";
+        reg = <0x00200000 0x07700000>;
+      };
+    };
   };
 };
 
@@ -510,6 +525,21 @@
 		spi-tx-bus-width = <4>;
 		spi-rx-bus-width = <4>;
 		spi-max-frequency = <12500000>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "payload_b";
+				reg = <0 0x00200000>;
+			};
+			partition@200000 {
+				label = "ubi_b";
+				reg = <0x00200000 0x07700000>;
+			};
+		};
 	};
 };
 
