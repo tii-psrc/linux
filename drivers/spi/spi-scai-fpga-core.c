@@ -625,6 +625,7 @@ static const struct of_device_id scai_fpgaqspi_of_match[] = {
 	{ .compatible = "scai-fpgaqspi,navc-mt29f" },
 	{ .compatible = "scai-fpgaqspi,navc-backup-w25" },
 	{ .compatible = "scai-fpgaqspi,navc-nor" },
+	{ .compatible = "scai-fpgaqspi,dpu-backup-w25" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, scai_fpgaqspi_of_match);
