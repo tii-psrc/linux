@@ -407,6 +407,30 @@
         label = "ubi_a";
         reg = <0x00200000 0x07700000>;
       };
+			partition@2000000 {
+				label = "payload_b";
+				reg = <0x02000000 0x00200000>;
+			};
+			partition@2200000 {
+				label = "ubi_b";
+				reg = <0x02200000 0x01E00000>;
+			};
+			partition@4000000 {
+				label = "payload_c";
+				reg = <0x04000000 0x00200000>;
+			};
+			partition@4200000 {
+				label = "ubi_c";
+				reg = <0x04200000 0x01E00000>;
+			};
+			partition@6000000 {
+				label = "payload_d";
+				reg = <0x06000000 0x00200000>;
+			};
+			partition@6200000 {
+				label = "ubi_d";
+				reg = <0x06200000 0x01E00000>;
+			};
     };
   };
 };
@@ -428,11 +452,11 @@
 			#size-cells = <1>;
 
 			partition@0 {
-				label = "payload_b";
+				label = "payload_e";
 				reg = <0 0x00200000>;
 			};
 			partition@200000 {
-				label = "ubi_b";
+				label = "ubi_e";
 				reg = <0x00200000 0x07700000>;
 			};
 		};
