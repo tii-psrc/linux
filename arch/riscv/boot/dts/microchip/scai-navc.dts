@@ -394,7 +394,6 @@
     spi-tx-bus-width = <4>;
     spi-rx-bus-width = <4>;
 
-		/*
     partitions {
       compatible = "fixed-partitions";
       #address-cells = <1>;
@@ -433,7 +432,6 @@
 				reg = <0x06200000 0x01E00000>;
 			};
     };
-		*/
   };
 };
 
