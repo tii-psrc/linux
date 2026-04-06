@@ -405,7 +405,7 @@
       };
       partition@200000 {
         label = "ubi_a";
-        reg = <0x00200000 0x07700000>;
+        reg = <0x00200000 0x01E00000>;
       };
 			partition@2000000 {
 				label = "payload_b";
