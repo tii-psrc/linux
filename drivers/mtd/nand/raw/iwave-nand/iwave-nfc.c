@@ -296,6 +296,8 @@ static void iwave_prepare_cmd(struct nand_chip *chip,
 	unsigned long cmd_phase_data = 0;
 	u32 end_cmd_valid = 0, cmdphase_addrflags;
 
+	mdelay(1);
+
 	end_cmd_valid = read ? 1 : 0;
 	cmdphase_addrflags = ((xnfc->addr_cycles
 				<< ADDR_CYCLES_SHIFT) |
