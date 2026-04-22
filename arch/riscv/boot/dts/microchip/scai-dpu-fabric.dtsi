@@ -17,13 +17,6 @@
 			 <0x20 0x0 0x20 0x0 0x10 0x0>, /* FIC0,HI */
 			 <0x30 0x0 0x30 0x0 0x10 0x0>; /* FIC1,HI */
 
-		fic3shm: uio@40000000 {
-			compatible = "generic-uio";
-			linux,uio-name = "fic3_shm";
-			reg = <0x0 0x40000000 0x0 0x20000000>;
-			status = "disabled";
-		};
-
 		fabric_qspi0: fabric-qspi@40000510 {
 			compatible = "scai-fpgaqspi,dpu-backup-w25";
 			reg = <0x0 0x40000510 0x0 0x10>;  /* backup w25 */
@@ -177,8 +170,20 @@
 		interrupts = <118>, <119>;
 		reg = <0x0 0xE0000000 0x0 0x8000000>, <0x0 0x68000000 0x0 0x800000>;
 		reg-names = "nand_data", "nand_reg";
-		status = "okay";
+		status = "disabled";
 		cs_num = <0x2>;
+
+		/*
+		nand@0 {
+			reg = <0>;
+			label = "nand0";
+		};
+		nand@1 {
+			reg = <1>;
+			label = "nand1";
+		};
+		*/
+
 		//partitions {
 			//compatible = "fixed-partitions";
 			//#address-cells = <0x2>;
@@ -189,6 +194,44 @@
 			//};
 		//};
 	};
+
+	fabric_raw_nand1: fabric_raw_nand1@e8000000 {
+		#address-cells = <0x2>;
+		#size-cells = <0x2>;
+		clock-names = "s_aclk", "host_clk";
+		clocks = <&ccc_nw CLK_CCC_PLL0_OUT0>, <&ccc_nw CLK_CCC_PLL0_OUT1>;
+		compatible = "iw,iwave-nand-dt";
+		interrupt-names = "ecc_irq", "data_irq";
+		interrupt-parent = <&plic>;
+		#interrupt-cells = <2>;
+		interrupts = <120>, <121>;
+		reg = <0x0 0xE8000000 0x0 0x8000000>, <0x0 0x68800000 0x0 0x800000>;
+		reg-names = "nand_data", "nand_reg";
+		status = "disabled";
+		cs_num = <0x2>;
+
+		/*
+		nand@2 {
+			reg = <2>;
+			label = "nand2";
+		};
+		nand@3 {
+			reg = <3>;
+			label = "nand3";
+		};
+		*/
+
+		//partitions {
+			//compatible = "fixed-partitions";
+			//#address-cells = <0x2>;
+			//#size-cells = <0x2>;
+			//partition@0 { /* for testing purpose */
+			//label = "iWave-nand";
+			//reg = <0x0 0x0 0x0 0xC0000000>;
+			//};
+		//};
+	};
+
 
 };
 

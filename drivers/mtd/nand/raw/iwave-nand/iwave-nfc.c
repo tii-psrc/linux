@@ -153,19 +153,20 @@ static void iwave_nfc_force_byte_access(struct nand_chip *chip,
 		return;
 
 	if (force_8bit)
-		ret = iwave_smc_set_buswidth(IW_NAND_MEM_WIDTH_8);
+		ret = iwave_smc_set_buswidth(xnfc, IW_NAND_MEM_WIDTH_8);
 	else
-		ret = iwave_smc_set_buswidth(IW_NAND_MEM_WIDTH_16);
+		ret = iwave_smc_set_buswidth(xnfc, IW_NAND_MEM_WIDTH_16);
 
 	if (ret)
 		dev_err(xnfc->dev, "Error in Buswidth\n");
 }
 
-static inline int iwave_wait_for_dev_ready(struct nand_chip *chip)
+static inline int iwave_wait_for_dev_ready(struct iwave_nand_controller *xnfc,
+		struct nand_chip *chip)
 {
 	unsigned long timeout = jiffies + IW_NAND_DEV_BUSY_TIMEOUT;
 
-	while (!iwave_smc_get_nand_int_status_raw()) {
+	while (!iwave_smc_get_nand_int_status_raw(xnfc)) {
 		if (time_after_eq(jiffies, timeout)) {
 			pr_err("%s timed out\n", __func__);
 			return -ETIMEDOUT;
@@ -173,7 +174,7 @@ static inline int iwave_wait_for_dev_ready(struct nand_chip *chip)
 		cond_resched();
 	}
 
-	iwave_smc_clr_nand_int();
+	iwave_smc_clr_nand_int(xnfc);
 
 	return 0;
 }
@@ -191,7 +192,7 @@ static inline int iwave_check_for_error(struct nand_chip *chip)
 	unsigned long timeout = jiffies + IW_NAND_ERROR_TIMEOUT;
 	struct iwave_nand_controller *xnfc = to_iwave_nand(chip->controller);
 
-	while (!iwave_read_error_reg()) {
+	while (!iwave_read_error_reg(xnfc)) {
 		if (time_after_eq(jiffies, timeout))
 			return 0;
 		cond_resched();
@@ -272,9 +273,10 @@ static void iwave_nand_write_data_op(struct nand_chip *chip, const u8 *buf,
 
 static inline int iwave_wait_for_ecc_done(struct nand_chip *chip)
 {
+	struct iwave_nand_controller *xnfc = to_iwave_nand(chip->controller);
 	unsigned long timeout = jiffies + IW_NAND_ECC_BUSY_TIMEOUT;
 
-	while (iwave_smc_ecc_is_busy()) {
+	while (iwave_smc_ecc_is_busy(xnfc)) {
 		if (time_after_eq(jiffies, timeout)) {
 			pr_err("%s timed out\n", __func__);
 			return -ETIMEDOUT;
@@ -363,7 +365,7 @@ static int iwave_nand_read_oob(struct nand_chip *chip,
 	writel((mtd->oobsize), xnfc->regs + IW_NAND_ADDR_SIZE_DATA);
 	iwave_prepare_cmd(chip, page, mtd->writesize, NAND_CMD_READ0, NAND_CMD_READSTART, 1);
 
-	if (iwave_wait_for_dev_ready(chip))
+	if (iwave_wait_for_dev_ready(xnfc, chip))
 		return -ETIMEDOUT;
 
 	p = chip->oob_poi;
@@ -400,7 +402,7 @@ static int iwave_nand_write_oob(struct nand_chip *chip, int page)
 #else
 	iwave_nand_write_data_op(chip, buf, mtd->oobsize, false);
 #endif
-	if (iwave_wait_for_dev_ready(chip))
+	if (iwave_wait_for_dev_ready(xnfc, chip))
 		return -ETIMEDOUT;
 
 	return 0;
@@ -425,7 +427,7 @@ static int iwave_nand_read_page_raw(struct nand_chip *chip, u8 *buf,
 	writel(0x1, xnfc->regs + IW_NAND_ECC_EL_DL_OFFS);
 	writel(mtd->writesize + (mtd->oobsize), xnfc->regs + IW_NAND_ADDR_SIZE_DATA);
 	iwave_prepare_cmd(chip, page, 0, NAND_CMD_READ0, NAND_CMD_READSTART, 1);
-	if (iwave_wait_for_dev_ready(chip))
+	if (iwave_wait_for_dev_ready(xnfc, chip))
 		return -ETIMEDOUT;
 
 	if (!buf)
@@ -462,7 +464,7 @@ static int iwave_nand_write_page_raw(struct nand_chip *chip, const u8 *buf,
 	p = chip->oob_poi;
 	iwave_nand_write_data_op(chip, p, mtd->oobsize, false);
 
-	if (iwave_wait_for_dev_ready(chip))
+	if (iwave_wait_for_dev_ready(xnfc, chip))
 		return -ETIMEDOUT;
 
 	return 0;
@@ -503,7 +505,7 @@ static int iwave_nand_write_page_hwecc(struct nand_chip *chip, const u8 *buf,
        oob_ptr = chip->oob_poi;
        iwave_nand_write_data_op(chip, oob_ptr, (mtd->oobsize - (3 * chip->ecc.steps)), false);
 
-       if (iwave_wait_for_dev_ready(chip))
+       if (iwave_wait_for_dev_ready(xnfc, chip))
                return -ETIMEDOUT;
 
 
@@ -550,7 +552,7 @@ static int iwave_nand_read_page_hwecc(struct nand_chip *chip,
 	writel((eccsteps * eccsize) + (mtd->oobsize), xnfc->regs + IW_NAND_ADDR_SIZE_DATA);
 	iwave_prepare_cmd(chip, page, 0, NAND_CMD_READ0, NAND_CMD_READSTART, 1);
 
-	if (iwave_wait_for_dev_ready(chip))
+	if (iwave_wait_for_dev_ready(xnfc, chip))
 		return -ETIMEDOUT;
 
 	for ( ; (eccsteps); eccsteps--) {
@@ -722,7 +724,7 @@ static int iwave_nand_exec_op_cmd(struct nand_chip *chip, const struct nand_subo
 	op_id = nfc_op.data_instr_idx;
 
 	/* Clear interrupts */
-	iwave_smc_clr_nand_int();
+	iwave_smc_clr_nand_int(xnfc);
 
 	cmdphase_addrflags = ((naddrs << ADDR_CYCLES_SHIFT) |
 			(end_cmd_valid << END_CMD_VALID_SHIFT) |
@@ -747,7 +749,7 @@ static int iwave_nand_exec_op_cmd(struct nand_chip *chip, const struct nand_subo
 	if (!nfc_op.data_instr) {
 		if (nfc_op.rdy_timeout_ms) {
 			mdelay(12);
-			if (iwave_wait_for_dev_ready(chip))
+			if (iwave_wait_for_dev_ready(xnfc, chip))
 				return -ETIMEDOUT;
 		}
 		return 0;
@@ -761,7 +763,7 @@ static int iwave_nand_exec_op_cmd(struct nand_chip *chip, const struct nand_subo
 				len, instr->ctx.data.force_8bit);
 		if (nfc_op.rdy_timeout_ms) {
 			mdelay(12);
-			if (iwave_wait_for_dev_ready(chip))
+			if (iwave_wait_for_dev_ready(xnfc, chip))
 				return -ETIMEDOUT;
 		}
 		ndelay(nfc_op.rdy_delay_ns);
@@ -770,7 +772,7 @@ static int iwave_nand_exec_op_cmd(struct nand_chip *chip, const struct nand_subo
 
 		if (nfc_op.rdy_timeout_ms) {
 			mdelay(12);
-			if (iwave_wait_for_dev_ready(chip))
+			if (iwave_wait_for_dev_ready(xnfc, chip))
 				return -ETIMEDOUT;
 		}
 
@@ -851,7 +853,7 @@ static int iwave_nand_ecc_init(struct mtd_info *mtd, struct nand_ecc_ctrl *ecc,
 		 */
 		chip->bbt_td = &bbt_main_descr;
 		chip->bbt_md = &bbt_mirror_descr;
-		ret = iwave_smc_set_ecc_mode(IW_NAND_ECCMODE_BYPASS);
+		ret = iwave_smc_set_ecc_mode(xnfc, IW_NAND_ECCMODE_BYPASS);
 		if (ret)
 			return ret;
 
@@ -926,6 +928,7 @@ static int iWave_init_timing_mode(struct nand_chip *chip, int targets)
 static int iwave_nfc_setup_data_interface(struct nand_chip *chip, int csline,
 		const struct nand_interface_config *conf)
 {
+	struct iwave_nand_controller *xnfc = to_iwave_nand(chip->controller);
 	u32 timings[7];
 
 	timings[0] = 4 ; /*t_Rc_min*/
@@ -936,7 +939,7 @@ static int iwave_nfc_setup_data_interface(struct nand_chip *chip, int csline,
 	timings[5] = 2 ; /*t_Ar*/
 	timings[6] = 4 ; /*t_Rr*/
 
-	iwave_smc_set_cycles(timings);
+	iwave_smc_set_cycles(xnfc, timings);
 
 	return 0;
 }
@@ -948,7 +951,7 @@ static int iwave_nand_attach_chip(struct nand_chip *chip)
 	int ret;
 
 	if (chip->options & NAND_BUSWIDTH_16) {
-		ret = iwave_smc_set_buswidth(IW_NAND_MEM_WIDTH_16);
+		ret = iwave_smc_set_buswidth(xnfc, IW_NAND_MEM_WIDTH_16);
 		if (ret) {
 			dev_err(xnfc->dev, "Set BusWidth failed\n");
 			return ret;
@@ -1061,12 +1064,11 @@ static int iwave_nand_probe(struct platform_device *pdev)
 	if (IS_ERR(xnfc->nand_data))
 		return PTR_ERR(xnfc->nand_data);
 
-	iwave_set_base_address(chip);
 
 	/* clear interrupts */
 	writel(IW_NAND_CFG_CLR_DEFAULT_MASK, xnfc->regs + IW_NAND_CFG_CLR_OFFS);
 
-	iwave_nand_init_nand_interface();
+	iwave_nand_init_nand_interface(xnfc);
 
 	val = 8;
 	xnfc->buswidth = val;

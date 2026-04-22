@@ -407,6 +407,14 @@
 	};
 };
 
+&fabric_raw_nand0 {
+	status = "okay";
+};
+
+&fabric_raw_nand1 {
+	status = "okay";
+};
+
 &refclk {
 	clock-frequency = <100000000>;
 };
@@ -465,7 +473,3 @@
 	dr_mode = "otg";
 };
 */
-
-&fic3shm {
-	status = "okay";
-};

@@ -104,7 +104,6 @@
 
 /* NAND flash driver defines */
 #define IW_NAND_ECC_SIZE		      512	/* Size of data for ECC operation */
-#define IWAVE_NAND_REG_BASEADDR		      0x68000000
 
 /* AXI Address definitions */
 #define START_CMD_SHIFT			      3
@@ -191,15 +190,15 @@ enum iwave_smc_mem_width {
         IW_NAND_MEM_WIDTH_16 = 1
 };
 
-u32 iwave_smc_get_ecc_val( int ecc_reg);
-bool iwave_smc_ecc_is_busy(void);
-int iwave_smc_get_nand_int_status_raw(void);
-int iwave_read_error_reg(void);
-void iwave_smc_clr_nand_int(void);
-int iwave_smc_set_ecc_mode( enum iwave_smc_ecc_mode mode);
-int iwave_smc_set_ecc_pg_size( unsigned int pg_sz);
-int iwave_smc_set_buswidth(unsigned int bw);
-void iwave_smc_set_cycles( u32 timings[]);
-void iwave_nand_init_nand_interface(void);
-void iwave_set_base_address(struct nand_chip *chip);
+u32 iwave_smc_get_ecc_val(struct iwave_nand_controller *xnfc, int ecc_reg);
+bool iwave_smc_ecc_is_busy(struct iwave_nand_controller *xnfc);
+int iwave_smc_get_nand_int_status_raw(struct iwave_nand_controller *xnfc);
+int iwave_read_error_reg(struct iwave_nand_controller *xnfc);
+void iwave_smc_clr_nand_int(struct iwave_nand_controller *xnfc);
+int iwave_smc_set_ecc_mode(struct iwave_nand_controller *xnfc, enum iwave_smc_ecc_mode mode);
+int iwave_smc_set_ecc_pg_size(struct iwave_nand_controller *xnfc, unsigned int pg_sz);
+int iwave_smc_set_buswidth(struct iwave_nand_controller *xnfc, unsigned int bw);
+void iwave_smc_set_cycles(struct iwave_nand_controller *xnfc, u32 timings[]);
+void iwave_nand_init_nand_interface(struct iwave_nand_controller *xnfc);
+//void iwave_set_base_address(struct nand_chip *chip);
 #endif /* __IWAVE_H_ */

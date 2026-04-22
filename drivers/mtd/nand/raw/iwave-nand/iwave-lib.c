@@ -8,7 +8,6 @@
 
 #include "iwave-lib.h"
 
-void __iomem *iwave_base_reg;
 
 /**
  * iwave_smc_set_buswidth - Set memory buswidth
@@ -16,13 +15,13 @@ void __iomem *iwave_base_reg;
  * Return: 0 on success or negative errno.
  */
 
-int iwave_smc_set_buswidth( unsigned int bw )
+int iwave_smc_set_buswidth(struct iwave_nand_controller *xnfc, unsigned int bw)
 {
 	if (bw != IW_NAND_MEM_WIDTH_8  && bw != IW_NAND_MEM_WIDTH_16)
 		return -EINVAL;
 
-        writel(bw,iwave_base_reg + IW_NAND_SET_OPMODE_OFFS);
-        writel(IW_NAND_DC_UPT_NAND_REGS, iwave_base_reg + IW_NAND_DIRECT_CMD_OFFS);
+        writel(bw, xnfc->regs + IW_NAND_SET_OPMODE_OFFS);
+        writel(IW_NAND_DC_UPT_NAND_REGS, xnfc->regs + IW_NAND_DIRECT_CMD_OFFS);
         return 0;
 }
 EXPORT_SYMBOL_GPL(iwave_smc_set_buswidth);
@@ -34,7 +33,8 @@ EXPORT_SYMBOL_GPL(iwave_smc_set_buswidth);
  * Return: 0 on success or negative errno.
  */
 
-int iwave_smc_set_ecc_mode(enum iwave_smc_ecc_mode mode)
+int iwave_smc_set_ecc_mode(struct iwave_nand_controller *xnfc,
+		enum iwave_smc_ecc_mode mode)
 {
         u32 reg;
         int ret = 0;
@@ -44,10 +44,10 @@ int iwave_smc_set_ecc_mode(enum iwave_smc_ecc_mode mode)
 		case IW_NAND_ECCMODE_APB:
 		case IW_NAND_ECCMODE_MEM:
 
-			reg = readl(iwave_base_reg + IW_NAND_ECC_MEMCFG_OFFS);
+			reg = readl(xnfc->regs + IW_NAND_ECC_MEMCFG_OFFS);
 			reg &= ~IW_NAND_ECC_MEMCFG_MODE_MASK;
 			reg |= mode << IW_NAND_ECC_MEMCFG_MODE_SHIFT;
-			writel(reg, iwave_base_reg + IW_NAND_ECC_MEMCFG_OFFS);
+			writel(reg, xnfc->regs + IW_NAND_ECC_MEMCFG_OFFS);
 
 			break;
 		default:
@@ -63,9 +63,9 @@ EXPORT_SYMBOL_GPL(iwave_smc_set_ecc_mode);
  * iwave_smc_clr_nand_int - Clear NAND interrupt
  */
 
-void iwave_smc_clr_nand_int(void)
+void iwave_smc_clr_nand_int(struct iwave_nand_controller *xnfc)
 {
-	writel(IW_NAND_CFG_CLR_INT_CLR_1, iwave_base_reg + IW_NAND_CFG_CLR_OFFS);
+	writel(IW_NAND_CFG_CLR_INT_CLR_1, xnfc->regs + IW_NAND_CFG_CLR_OFFS);
 }
 EXPORT_SYMBOL_GPL(iwave_smc_clr_nand_int);
 
@@ -76,7 +76,7 @@ EXPORT_SYMBOL_GPL(iwave_smc_clr_nand_int);
  *
  * Sets NAND chip specific timing parameters.
  */
-void iwave_smc_set_cycles(u32 timings[])
+void iwave_smc_set_cycles(struct iwave_nand_controller *xnfc, u32 timings[])
 {
 	/*
 	 * Set write pulse timing. This one is easy to extract:
@@ -100,7 +100,7 @@ void iwave_smc_set_cycles(u32 timings[])
 	timings[0] |= timings[1] | timings[2] | timings[3] |
 		timings[4] | timings[5] | timings[6];
 
-	writel(timings[0], iwave_base_reg  + IW_NAND_SET_CYCLES_OFFS);
+	writel(timings[0], xnfc->regs  + IW_NAND_SET_CYCLES_OFFS);
 }
 EXPORT_SYMBOL_GPL(iwave_smc_set_cycles);
 
@@ -109,10 +109,10 @@ EXPORT_SYMBOL_GPL(iwave_smc_set_cycles);
  * Return: the ecc_status bit from the ecc_status register. 1 = busy, 0 = idle
  */
 
-bool iwave_smc_ecc_is_busy(void)
+bool iwave_smc_ecc_is_busy(struct iwave_nand_controller *xnfc)
 {
 
-	return ((readl(iwave_base_reg + IW_NAND_ECC_STATUS_OFFS) &
+	return ((readl(xnfc->regs + IW_NAND_ECC_STATUS_OFFS) &
 				IW_NAND_ECC_STATUS_BUSY) == IW_NAND_ECC_STATUS_BUSY);
 	return 0;
 }
@@ -124,7 +124,8 @@ EXPORT_SYMBOL_GPL(iwave_smc_ecc_is_busy);
  * Return: 0 on success or negative errno.
  */
 
-int iwave_smc_set_ecc_pg_size(unsigned int pg_sz)
+int iwave_smc_set_ecc_pg_size(struct iwave_nand_controller *xnfc,
+		unsigned int pg_sz)
 {
 	u32 reg, sz;
 
@@ -154,10 +155,10 @@ int iwave_smc_set_ecc_pg_size(unsigned int pg_sz)
 			return -EINVAL;
 	}
 
-	reg = readl(iwave_base_reg + IW_NAND_ECC_MEMCFG_OFFS);
+	reg = readl(xnfc->regs + IW_NAND_ECC_MEMCFG_OFFS);
 	reg &= ~IW_NAND_ECC_MEMCFG_PGSIZE_MASK;
 	reg |= sz;
-	writel(reg,iwave_base_reg + IW_NAND_ECC_MEMCFG_OFFS);
+	writel(reg, xnfc->regs + IW_NAND_ECC_MEMCFG_OFFS);
 	return 0;
 }
 EXPORT_SYMBOL_GPL(iwave_smc_set_ecc_pg_size);
@@ -171,12 +172,12 @@ EXPORT_SYMBOL_GPL(iwave_smc_set_ecc_pg_size);
  * within this valid boundary.
  */
 
-u32 iwave_smc_get_ecc_val(int ecc_reg)
+u32 iwave_smc_get_ecc_val(struct iwave_nand_controller *xnfc, int ecc_reg)
 {
 	u32 addr, reg;
 
         addr = IW_NAND_ECC_VALUE0_OFFS + (ecc_reg * IW_NAND_ECC_REG_SIZE_OFFS);
-        reg = readl(iwave_base_reg + addr);
+        reg = readl(xnfc->regs + addr);
         return reg;
 }
 EXPORT_SYMBOL_GPL(iwave_smc_get_ecc_val);
@@ -186,22 +187,22 @@ EXPORT_SYMBOL_GPL(iwave_smc_get_ecc_val);
  * Return: the raw_int_status1 bit from the memc_status register
  */
 
-int iwave_smc_get_nand_int_status_raw(void)
+int iwave_smc_get_nand_int_status_raw(struct iwave_nand_controller *xnfc)
 {
 	u32 reg;
 
-	reg = readl(iwave_base_reg + IW_NAND_MEMC_STATUS_OFFS);
+	reg = readl(xnfc->regs + IW_NAND_MEMC_STATUS_OFFS);
 	reg >>= IW_NAND_MEMC_STATUS_RAW_INT_1_SHIFT;
 	reg &= 1; 
 	return reg;
 }
 EXPORT_SYMBOL_GPL(iwave_smc_get_nand_int_status_raw);
 
-int iwave_read_error_reg(void)
+int iwave_read_error_reg(struct iwave_nand_controller *xnfc)
 {
 	u32 reg;
 
-	reg = readl(iwave_base_reg + IW_NAND_ADDR_TIMEOUT_ERROR);
+	reg = readl(xnfc->regs + IW_NAND_ADDR_TIMEOUT_ERROR);
 	reg &= 1;
 	return reg;
 }
@@ -213,15 +214,15 @@ EXPORT_SYMBOL_GPL(iwave_read_error_reg);
  * @nand_node: Pointer to the iwave_nand device_node struct
  */
 
-void iwave_nand_init_nand_interface(void)
+void iwave_nand_init_nand_interface(struct iwave_nand_controller *xnfc)
 {
 	unsigned long timeout;
 
-	iwave_smc_set_buswidth(IW_NAND_MEM_WIDTH_8);
+	iwave_smc_set_buswidth(xnfc, IW_NAND_MEM_WIDTH_8);
 	timeout = jiffies + IW_NAND_ECC_BUSY_TIMEOUT;
 	/* Wait till the ECC operation is complete */
 	do {
-		if (iwave_smc_ecc_is_busy())
+		if (iwave_smc_ecc_is_busy(xnfc))
 			cpu_relax();
 		else
 			break;
@@ -230,17 +231,7 @@ void iwave_nand_init_nand_interface(void)
 	if (time_after_eq(jiffies, timeout))
 		return;
 
-	writel(IW_NAND_ECC_CMD1, iwave_base_reg + IW_NAND_ECC_MEMCMD1_OFFS);
-	writel(IW_NAND_ECC_CMD2, iwave_base_reg + IW_NAND_ECC_MEMCMD2_OFFS);
+	writel(IW_NAND_ECC_CMD1, xnfc->regs + IW_NAND_ECC_MEMCMD1_OFFS);
+	writel(IW_NAND_ECC_CMD2, xnfc->regs + IW_NAND_ECC_MEMCMD2_OFFS);
 }
 EXPORT_SYMBOL_GPL(iwave_nand_init_nand_interface);
-
-/**
- *iwave pass base address in virtual variable
- *iwave_nand_base
- */
-void iwave_set_base_address(struct nand_chip *chip)
-{
-	iwave_base_reg = ioremap(IWAVE_NAND_REG_BASEADDR, 0xFF);
-}
-EXPORT_SYMBOL_GPL(iwave_set_base_address);
