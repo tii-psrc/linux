@@ -1000,8 +1000,8 @@ static int iwave_nand_chip_init( struct iwave_nand_controller *xnfc,
 		dev_err(xnfc->dev, "can't get chip-select\n");
 		return -ENXIO;
 	}
-	mtd->name = devm_kasprintf(xnfc->dev, GFP_KERNEL, "iWave_nand.%d",
-			inand_chip->csnum);
+	mtd->name = devm_kasprintf(xnfc->dev, GFP_KERNEL, "iWave_nand.%08x",
+			xnfc->flash_reg->start);
 	mtd->dev.parent = xnfc->dev;
 	chip->controller = &xnfc->controller;
 	chip->options = NAND_BUSWIDTH_AUTO | NAND_NO_SUBPAGE_WRITE;
