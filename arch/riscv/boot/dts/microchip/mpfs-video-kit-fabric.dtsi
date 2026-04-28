@@ -13,5 +13,29 @@
 			 <0x20 0x0 0x20 0x0 0x10 0x0>, /* FIC0,HI */
 			 <0x30 0x0 0x30 0x0 0x10 0x0>; /* FIC1,HI */
 	};
+	nand_wrapper_0: nand_wrapper@e0000000 {
+		#address-cells = <0x2>;
+		#size-cells = <0x2>;
+		clock-names = "s_aclk", "host_clk";
+		clocks = <&ccc_nw CLK_CCC_PLL0_OUT0>, <&ccc_nw CLK_CCC_PLL0_OUT1>;
+		compatible = "iw,iwave-nand-dt";
+		interrupt-names = "ecc_irq", "data_irq";
+		interrupt-parent = <&plic>;
+		#interrupt-cells = <2>;
+		interrupts = <118>, <119>;
+		reg = <0x0 0xE0000000 0x0 0x8000000>, <0x0 0x68000000 0x0 0x800000>;
+		reg-names = "nand_data", "nand_reg";
+		status = "okay";
+		cs_num = <0x2>;
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <0x2>;
+			#size-cells = <0x2>;
+			partition@0 { /* for testing purpose */
+				label = "iWave-nand";
+				reg = <0x0 0x0 0x0 0xC0000000>;
+			};
+		};
+	};
 };
 
