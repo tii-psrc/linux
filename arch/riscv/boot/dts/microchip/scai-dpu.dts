@@ -27,6 +27,7 @@
 		serial0 = &mmuart0;
 		serial1 = &mmuart1;
 		serial2 = &mmuart2;
+		serial3 = &mmuart3;
 	};
 
 	chosen {
@@ -335,11 +336,10 @@
 	current-speed = <921600>;
 };
 
-/*
 &mmuart3 {
-	status = "disabled";
+	status = "okay";
+	current-speed = <921600>;
 };
-*/
 
 /*
 &mmuart4 {
