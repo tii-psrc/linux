@@ -33,6 +33,12 @@
 
 #define IWAVE_NAND_DRIVER_NAME "iwave-nand"
 
+#include <linux/module.h>
+#include <linux/proc_fs.h>
+#include <linux/uaccess.h>
+#include <linux/init.h>
+#include <linux/kernel.h>
+
 u32 set_timing = 0;
 
 struct iwave_nfc_op {
@@ -162,16 +168,33 @@ static void iwave_nfc_force_byte_access(struct nand_chip *chip,
 }
 
 static inline int iwave_wait_for_dev_ready(struct iwave_nand_controller *xnfc,
-		struct nand_chip *chip)
+		struct nand_chip *chip, int poll_mode, unsigned long delay_us)
 {
-	unsigned long timeout = jiffies + IW_NAND_DEV_BUSY_TIMEOUT;
+	ktime_t start = ktime_get();
+	u32 reg = 0;
+	int ret;
 
-	while (!iwave_smc_get_nand_int_status_raw(xnfc)) {
-		if (time_after_eq(jiffies, timeout)) {
-			pr_err("%s timed out\n", __func__);
-			return -ETIMEDOUT;
+	if (WARN_ON_ONCE(poll_mode != POLL_MODE_BUSY &&
+				poll_mode != POLL_MODE_SCHEDULED))
+		poll_mode = POLL_MODE_SCHEDULED;
+
+	if (poll_mode == POLL_MODE_BUSY) {
+		while (!(reg = iwave_smc_get_nand_int_status_raw(xnfc, poll_mode, 
+						delay_us))) {
+			if (ktime_ms_delta(ktime_get(), start) > 1000) {
+				pr_debug("%s status(0x%08X)\n", __func__, reg);
+				pr_err("%s timed out\n", __func__);
+				return -ETIMEDOUT;
+			}
+			cpu_relax();
+			udelay(delay_us);
 		}
-		cond_resched();
+	} else if (poll_mode == POLL_MODE_SCHEDULED) {
+		ret = iwave_smc_get_nand_int_status_raw(xnfc, poll_mode, delay_us);
+		if (ret == -ETIMEDOUT) {
+			pr_err("%s timed out\n", __func__);
+			return ret;
+		}
 	}
 
 	iwave_smc_clr_nand_int(xnfc);
@@ -353,6 +376,7 @@ static int iwave_nand_read_oob(struct nand_chip *chip,
 	struct iwave_nand_controller *xnfc = to_iwave_nand(chip->controller);
 	struct mtd_info *mtd = nand_to_mtd(chip);
 	u8 *p;
+	ktime_t s, e;
 
 #ifdef CONFIG_MTD_NAND_HW_ECC_IWAVE
 	writel(0x0, xnfc->regs + IW_NAND_ECC_EL_DL_OFFS);
@@ -367,8 +391,11 @@ static int iwave_nand_read_oob(struct nand_chip *chip,
 	writel((mtd->oobsize), xnfc->regs + IW_NAND_ADDR_SIZE_DATA);
 	iwave_prepare_cmd(chip, page, mtd->writesize, NAND_CMD_READ0, NAND_CMD_READSTART, 1);
 
-	if (iwave_wait_for_dev_ready(xnfc, chip))
+	s = ktime_get();
+	if (iwave_wait_for_dev_ready(xnfc, chip, POLL_MODE_BUSY, 10))
 		return -ETIMEDOUT;
+	e = ktime_get();
+	//printk("%s: took %lld us\n", __func__, ktime_us_delta(e, s));
 
 	p = chip->oob_poi;
 	iwave_nand_read_data_op(chip, p, (mtd->oobsize), false);
@@ -389,6 +416,7 @@ static int iwave_nand_write_oob(struct nand_chip *chip, int page)
 	struct iwave_nand_controller *xnfc = to_iwave_nand(chip->controller);
 	struct mtd_info *mtd = nand_to_mtd(chip);
 	const u8 *buf = chip->oob_poi;
+	ktime_t s, e;
 
 #ifdef CONFIG_MTD_NAND_HW_ECC_IWAVE
 	writel(0x0, xnfc->regs + IW_NAND_ECC_EL_DL_OFFS);
@@ -404,8 +432,11 @@ static int iwave_nand_write_oob(struct nand_chip *chip, int page)
 #else
 	iwave_nand_write_data_op(chip, buf, mtd->oobsize, false);
 #endif
-	if (iwave_wait_for_dev_ready(xnfc, chip))
+	s = ktime_get();
+	if (iwave_wait_for_dev_ready(xnfc, chip, POLL_MODE_SCHEDULED, 100))
 		return -ETIMEDOUT;
+	e = ktime_get();
+	//printk("%s: took %lld us\n", __func__, ktime_us_delta(e, s));
 
 	return 0;
 }
@@ -425,12 +456,16 @@ static int iwave_nand_read_page_raw(struct nand_chip *chip, u8 *buf,
 	struct iwave_nand_controller *xnfc = to_iwave_nand(chip->controller);
 	struct mtd_info *mtd = nand_to_mtd(chip);
 	u8 *p;
+	ktime_t s, e;
 
 	writel(0x1, xnfc->regs + IW_NAND_ECC_EL_DL_OFFS);
 	writel(mtd->writesize + (mtd->oobsize), xnfc->regs + IW_NAND_ADDR_SIZE_DATA);
 	iwave_prepare_cmd(chip, page, 0, NAND_CMD_READ0, NAND_CMD_READSTART, 1);
-	if (iwave_wait_for_dev_ready(xnfc, chip))
+	s = ktime_get();
+	if (iwave_wait_for_dev_ready(xnfc, chip, READ_ONCE(xnfc->poll_mode), 10))
 		return -ETIMEDOUT;
+	e = ktime_get();
+	//printk("%s: took %lld us\n", __func__, ktime_us_delta(e, s));
 
 	if (!buf)
 		return 0;
@@ -457,6 +492,7 @@ static int iwave_nand_write_page_raw(struct nand_chip *chip, const u8 *buf,
 	struct iwave_nand_controller *xnfc = to_iwave_nand(chip->controller);
 	struct mtd_info *mtd = nand_to_mtd(chip);
 	u8 *p;
+	ktime_t s, e;
 
 	writel(0x1, xnfc->regs + IW_NAND_ECC_EL_DL_OFFS);
 	writel(mtd->writesize + (mtd->oobsize), xnfc->regs + IW_NAND_ADDR_SIZE_DATA);
@@ -466,12 +502,16 @@ static int iwave_nand_write_page_raw(struct nand_chip *chip, const u8 *buf,
 	p = chip->oob_poi;
 	iwave_nand_write_data_op(chip, p, mtd->oobsize, false);
 
-	if (iwave_wait_for_dev_ready(xnfc, chip))
+	s = ktime_get();
+	if (iwave_wait_for_dev_ready(xnfc, chip, POLL_MODE_SCHEDULED, 100))
 		return -ETIMEDOUT;
+	e = ktime_get();
+	//printk("%s: took %lld us\n", __func__, ktime_us_delta(e, s));
 
 	return 0;
 }
 
+#ifdef CONFIG_MTD_NAND_HW_ECC_IWAVE
 /**
  * nand_write_page_hwecc - Hardware ECC based page write function
  * @chip:		Pointer to the nand_chip structure
@@ -585,6 +625,7 @@ static int iwave_nand_read_page_hwecc(struct nand_chip *chip,
 
 	return max_bitflips;
 }
+#endif
 
 /**
  * iwave_nand_write_page_swecc - BCH software ECC based page write function
@@ -718,6 +759,15 @@ static int iwave_nand_exec_op_cmd(struct nand_chip *chip, const struct nand_subo
 			case NAND_OP_WAITRDY_INSTR:
 				nfc_op.rdy_timeout_ms = instr->ctx.waitrdy.timeout_ms;
 				nfc_op.rdy_delay_ns = instr->delay_ns;
+#if 0
+				if (instr->ctx.cmd.opcode)
+					printk("%s, instr->ctx.cmd.opcode(%d)\n",
+							__func__, instr->ctx.cmd.opcode);
+				printk("%s, nfc_op.rdy_timeout_ms(%d)\n",
+						__func__, nfc_op.rdy_timeout_ms);
+				printk("%s, nfc_op.rdy_delay_ns (%d)\n",
+						__func__, nfc_op.rdy_delay_ns);
+#endif
 				break;
 		}
 	}
@@ -751,7 +801,7 @@ static int iwave_nand_exec_op_cmd(struct nand_chip *chip, const struct nand_subo
 	if (!nfc_op.data_instr) {
 		if (nfc_op.rdy_timeout_ms) {
 			mdelay(12);
-			if (iwave_wait_for_dev_ready(xnfc, chip))
+			if (iwave_wait_for_dev_ready(xnfc, chip, POLL_MODE_BUSY, 10))
 				return -ETIMEDOUT;
 		}
 		return 0;
@@ -765,7 +815,7 @@ static int iwave_nand_exec_op_cmd(struct nand_chip *chip, const struct nand_subo
 				len, instr->ctx.data.force_8bit);
 		if (nfc_op.rdy_timeout_ms) {
 			mdelay(12);
-			if (iwave_wait_for_dev_ready(xnfc, chip))
+			if (iwave_wait_for_dev_ready(xnfc, chip, POLL_MODE_BUSY, 10))
 				return -ETIMEDOUT;
 		}
 		ndelay(nfc_op.rdy_delay_ns);
@@ -774,7 +824,7 @@ static int iwave_nand_exec_op_cmd(struct nand_chip *chip, const struct nand_subo
 
 		if (nfc_op.rdy_timeout_ms) {
 			mdelay(12);
-			if (iwave_wait_for_dev_ready(xnfc, chip))
+			if (iwave_wait_for_dev_ready(xnfc, chip, POLL_MODE_BUSY, 10))
 				return -ETIMEDOUT;
 		}
 
@@ -987,7 +1037,7 @@ static const struct nand_controller_ops iwave_nand_controller_ops = {
 	.setup_interface = iwave_nfc_setup_data_interface,
 };
 
-static int iwave_nand_chip_init( struct iwave_nand_controller *xnfc,
+static int iwave_nand_chip_init(struct iwave_nand_controller *xnfc,
 		struct iwave_nand_chip *inand_chip,
 		struct device_node *np)
 {
@@ -1000,12 +1050,16 @@ static int iwave_nand_chip_init( struct iwave_nand_controller *xnfc,
 		dev_err(xnfc->dev, "can't get chip-select\n");
 		return -ENXIO;
 	}
-	mtd->name = devm_kasprintf(xnfc->dev, GFP_KERNEL, "iWave_nand.%08x",
+	mtd->name = devm_kasprintf(xnfc->dev, GFP_KERNEL, "iWave_nand.%08llx",
 			xnfc->flash_reg->start);
 	mtd->dev.parent = xnfc->dev;
 	chip->controller = &xnfc->controller;
 	chip->options = NAND_BUSWIDTH_AUTO | NAND_NO_SUBPAGE_WRITE;
+#if 1
+	chip->bbt_options = NAND_BBT_CREATE;
+#else
 	chip->bbt_options = NAND_BBT_USE_FLASH;
+#endif
 	chip->legacy.select_chip = iWave_nand_select_target;
 	nand_set_flash_node(chip, np);
 	ret = nand_scan(chip, inand_chip->csnum);
@@ -1022,6 +1076,103 @@ static int iwave_nand_chip_init( struct iwave_nand_controller *xnfc,
 	return mtd_device_register(mtd, NULL, 0);
 }
 
+static int poll_mode_proc_show(struct seq_file *m, void *v)
+{
+	struct iwave_nand_controller *xnfc = m->private;
+	int val;
+
+	spin_lock(&xnfc->lock);
+	val = xnfc->poll_mode;
+	spin_unlock(&xnfc->lock);
+
+	seq_printf(m, "%d (%s)\n",
+			val,
+			val == POLL_MODE_BUSY ?
+			"busy" : "scheduled");
+
+	return 0;
+}
+
+static int poll_mode_proc_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, poll_mode_proc_show, pde_data(inode));
+}
+
+static ssize_t poll_mode_proc_write(struct file *file,
+		const char __user *buf,
+		size_t count,
+		loff_t *ppos)
+{
+	struct iwave_nand_controller *xnfc = pde_data(file_inode(file));
+	char tmp[16];
+	int val, ret;
+
+	if (count >= sizeof(tmp))
+		return -EINVAL;
+
+	if (copy_from_user(tmp, buf, count))
+		return -EFAULT;
+
+	tmp[count] = '\0';
+
+	ret = kstrtoint(tmp, 10, &val);
+	if (ret)
+		return ret;
+
+	if (val < POLL_MODE_SCHEDULED ||
+			val > POLL_MODE_BUSY)
+		return -EINVAL;
+
+	spin_lock(&xnfc->lock);
+	xnfc->poll_mode = val;
+	spin_unlock(&xnfc->lock);
+
+	return count;
+}
+
+static const struct proc_ops poll_mode_proc_ops = {
+	.proc_open    = poll_mode_proc_open,
+	.proc_read    = seq_read,
+	.proc_lseek   = seq_lseek,
+	.proc_release = single_release,
+	.proc_write   = poll_mode_proc_write,
+};
+
+static int iwave_nand_proc_init(struct iwave_nand_controller *xnfc,
+		struct mtd_info *mtd)
+{
+	xnfc->proc_dir = proc_mkdir(mtd->name, NULL);
+	if (!xnfc->proc_dir)
+		return -ENOMEM;
+
+	proc_create_data("poll_mode", 0644, xnfc->proc_dir, &poll_mode_proc_ops,
+			xnfc);
+
+	return 0;
+}
+
+static void iwave_nand_proc_remove(struct mtd_info *mtd)
+{
+	remove_proc_subtree(mtd->name, NULL);
+}
+
+static int cmdline_poll_mode = POLL_MODE_UNKNOWN;
+static int __init poll_mode_setup(char *str)
+{
+	if (!str)
+		return 0;
+
+	kstrtoint(str, 0, &cmdline_poll_mode);
+
+	if (WARN_ON_ONCE(cmdline_poll_mode != POLL_MODE_BUSY &&
+				cmdline_poll_mode != POLL_MODE_SCHEDULED))
+		cmdline_poll_mode = POLL_MODE_BUSY;
+
+	printk("[%s] cmdline_poll_mode=%d\n", __func__, cmdline_poll_mode);
+
+	return 1;
+}
+__setup("poll_mode=", poll_mode_setup);
 
 /**
  * iwave_nand_probe - Probe method for the NAND driver
@@ -1038,8 +1189,7 @@ static int iwave_nand_chip_init( struct iwave_nand_controller *xnfc,
 static int iwave_nand_probe(struct platform_device *pdev)
 {
 	struct iwave_nand_controller *xnfc;
-	struct iwave_nand_chip *inand_chip;
-	struct nand_chip *chip;
+	struct nand_chip *chip = NULL;
 	struct device_node *np = pdev->dev.of_node;
 	u32 val = 0, err;
 
@@ -1084,14 +1234,23 @@ static int iwave_nand_probe(struct platform_device *pdev)
 	writel(0x1, xnfc->regs + IW_NAND_ECC_EL_DL_OFFS);
 #endif
 
-	inand_chip = devm_kzalloc(&pdev->dev, sizeof(*inand_chip), GFP_KERNEL);
-	if (!inand_chip) {
+	xnfc->inand_chip = devm_kzalloc(&pdev->dev, sizeof(*xnfc->inand_chip),
+			GFP_KERNEL);
+	if (!xnfc->inand_chip) {
 		return -ENOMEM;
 	}
 	/* Set the device option and flash width */
-	err = iwave_nand_chip_init(xnfc, inand_chip, np);
+	err = iwave_nand_chip_init(xnfc, xnfc->inand_chip, np);
 	if (err) 
-		devm_kfree(&pdev->dev, inand_chip);
+		devm_kfree(&pdev->dev, xnfc->inand_chip);
+
+	spin_lock_init(&xnfc->lock);
+	xnfc->poll_mode = (cmdline_poll_mode == POLL_MODE_UNKNOWN) ?
+		POLL_MODE_BUSY : POLL_MODE_SCHEDULED;
+	chip = &xnfc->inand_chip->chip;
+	err = iwave_nand_proc_init(xnfc, nand_to_mtd(chip));
+	if (err)
+		return err;
 
 	return 0;
 }
@@ -1108,10 +1267,13 @@ static int iwave_nand_probe(struct platform_device *pdev)
 
 static int iwave_nand_remove(struct platform_device *pdev)
 {
-	struct iwave_nand_chip *inand_chip;
+	struct iwave_nand_controller *xnfc = platform_get_drvdata(pdev);;
+	struct nand_chip *chip = &xnfc->inand_chip->chip;
+	struct mtd_info *mtd = nand_to_mtd(chip);
 
+	iwave_nand_proc_remove(mtd);
 	/* Release resources, unregister device */
-	nand_cleanup(&inand_chip->chip);
+	nand_cleanup(chip);
 
 	return 0;
 }

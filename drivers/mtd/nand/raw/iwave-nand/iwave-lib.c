@@ -6,6 +6,7 @@
  *
  */
 
+#include <linux/iopoll.h>
 #include "iwave-lib.h"
 
 
@@ -187,14 +188,24 @@ EXPORT_SYMBOL_GPL(iwave_smc_get_ecc_val);
  * Return: the raw_int_status1 bit from the memc_status register
  */
 
-int iwave_smc_get_nand_int_status_raw(struct iwave_nand_controller *xnfc)
+int iwave_smc_get_nand_int_status_raw(struct iwave_nand_controller *xnfc,
+		int poll_mode, unsigned long delay_us)
 {
 	u32 reg;
+	u32 mask = 1 << IW_NAND_MEMC_STATUS_RAW_INT_1_SHIFT;
+	int ret;
 
-	reg = readl(xnfc->regs + IW_NAND_MEMC_STATUS_OFFS);
-	reg >>= IW_NAND_MEMC_STATUS_RAW_INT_1_SHIFT;
-	reg &= 1; 
-	return reg;
+	if (poll_mode == POLL_MODE_BUSY) {
+		reg = readl(xnfc->regs + IW_NAND_MEMC_STATUS_OFFS);
+		reg >>= IW_NAND_MEMC_STATUS_RAW_INT_1_SHIFT;
+		reg &= 1;
+		ret = reg;
+	} else {
+		ret = readl_poll_timeout(xnfc->regs + IW_NAND_MEMC_STATUS_OFFS,
+				reg, (reg & mask), delay_us, 1000000);
+	}
+
+	return ret;
 }
 EXPORT_SYMBOL_GPL(iwave_smc_get_nand_int_status_raw);
 
