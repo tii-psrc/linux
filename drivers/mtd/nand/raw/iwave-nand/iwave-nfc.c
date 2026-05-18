@@ -1270,9 +1270,12 @@ static int iwave_nand_remove(struct platform_device *pdev)
 	struct iwave_nand_controller *xnfc = platform_get_drvdata(pdev);;
 	struct nand_chip *chip = &xnfc->inand_chip->chip;
 	struct mtd_info *mtd = nand_to_mtd(chip);
+	int ret;
 
 	iwave_nand_proc_remove(mtd);
 	/* Release resources, unregister device */
+	ret = mtd_device_unregister(mtd);
+	WARN_ON(ret);
 	nand_cleanup(chip);
 
 	return 0;
