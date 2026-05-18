@@ -5954,11 +5954,11 @@ static int nand_set_ecc_soft_ops(struct nand_chip *chip)
 		}
 		ecc->calculate = rawnand_sw_bch_calculate;
 		ecc->correct = rawnand_sw_bch_correct;
-#ifndef CONFIG_MTD_NAND_SW_ECC_IWAVE
+#if !IS_ENABLED(CONFIG_MTD_NAND_SW_ECC_IWAVE)
 		ecc->read_page = nand_read_page_swecc;
 #endif
 		ecc->read_subpage = nand_read_subpage;
-#ifndef CONFIG_MTD_NAND_SW_ECC_IWAVE
+#if !IS_ENABLED(CONFIG_MTD_NAND_SW_ECC_IWAVE)
 		ecc->write_page = nand_write_page_swecc;
 		if (!ecc->read_page_raw)
 			ecc->read_page_raw = nand_read_page_raw;
@@ -6407,7 +6407,7 @@ static int nand_scan_tail(struct nand_chip *chip)
 
 	case NAND_ECC_ENGINE_TYPE_NONE:
 		pr_warn("NAND_ECC_ENGINE_TYPE_NONE selected by board driver. This is not recommended!\n");
-#ifndef CONFIG_MTD_NAND_RAW_IWAVE
+#if !IS_ENABLED(CONFIG_MTD_NAND_RAW_IWAVE)
 		ecc->read_page = nand_read_page_raw;
 		ecc->write_page = nand_write_page_raw;
 		ecc->read_oob = nand_read_oob_std;
@@ -6510,7 +6510,7 @@ static int nand_scan_tail(struct nand_chip *chip)
 	chip->pagecache.page = -1;
 
 	/* Large page NAND with SOFT_ECC should support subpage reads */
-#ifndef CONFIG_MTD_NAND_SW_ECC_IWAVE
+#if !IS_ENABLED(CONFIG_MTD_NAND_SW_ECC_IWAVE)
 	switch (ecc->engine_type) {
 	case NAND_ECC_ENGINE_TYPE_SOFT:
 		if (chip->page_shift > 9)

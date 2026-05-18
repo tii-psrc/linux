@@ -378,7 +378,7 @@ static int iwave_nand_read_oob(struct nand_chip *chip,
 	u8 *p;
 	ktime_t s, e;
 
-#ifdef CONFIG_MTD_NAND_HW_ECC_IWAVE
+#if IS_ENABLED(CONFIG_MTD_NAND_HW_ECC_IWAVE)
 	writel(0x0, xnfc->regs + IW_NAND_ECC_EL_DL_OFFS);
 #else
 	writel(0x1, xnfc->regs + IW_NAND_ECC_EL_DL_OFFS);
@@ -418,7 +418,7 @@ static int iwave_nand_write_oob(struct nand_chip *chip, int page)
 	const u8 *buf = chip->oob_poi;
 	ktime_t s, e;
 
-#ifdef CONFIG_MTD_NAND_HW_ECC_IWAVE
+#if IS_ENABLED(CONFIG_MTD_NAND_HW_ECC_IWAVE)
 	writel(0x0, xnfc->regs + IW_NAND_ECC_EL_DL_OFFS);
 	writel((mtd->oobsize - (chip->ecc.bytes * chip->ecc.steps)), xnfc->regs + IW_NAND_ADDR_SIZE_DATA);
 #else
@@ -427,7 +427,7 @@ static int iwave_nand_write_oob(struct nand_chip *chip, int page)
 #endif
 	iwave_prepare_cmd(chip, page, mtd->writesize, NAND_CMD_SEQIN, NAND_CMD_PAGEPROG, 0);
 
-#ifdef CONFIG_MTD_NAND_HW_ECC_IWAVE
+#if IS_ENABLED(CONFIG_MTD_NAND_HW_ECC_IWAVE)
 	iwave_nand_write_data_op(chip, buf, (mtd->oobsize - (chip->ecc.bytes * chip->ecc.steps)), false);
 #else
 	iwave_nand_write_data_op(chip, buf, mtd->oobsize, false);
@@ -511,7 +511,7 @@ static int iwave_nand_write_page_raw(struct nand_chip *chip, const u8 *buf,
 	return 0;
 }
 
-#ifdef CONFIG_MTD_NAND_HW_ECC_IWAVE
+#if IS_ENABLED(CONFIG_MTD_NAND_HW_ECC_IWAVE)
 /**
  * nand_write_page_hwecc - Hardware ECC based page write function
  * @chip:		Pointer to the nand_chip structure
@@ -910,7 +910,7 @@ static int iwave_nand_ecc_init(struct mtd_info *mtd, struct nand_ecc_ctrl *ecc,
 			return ret;
 
 	} else {
-#ifdef CONFIG_MTD_NAND_HW_ECC_IWAVE
+#if IS_ENABLED(CONFIG_MTD_NAND_HW_ECC_IWAVE)
 		ecc->engine_type = NAND_ECC_ENGINE_TYPE_ON_HOST;
 
 		/* Hardware ECC generates 3 bytes ECC code for each 512 bytes */
@@ -922,7 +922,7 @@ static int iwave_nand_ecc_init(struct mtd_info *mtd, struct nand_ecc_ctrl *ecc,
 		mtd_set_ooblayout(mtd, &iwave_ecc_ooblayout_ops);
 #endif
 
-#ifdef CONFIG_MTD_NAND_SW_ECC_IWAVE
+#if IS_ENABLED(CONFIG_MTD_NAND_SW_ECC_IWAVE)
 		ecc->engine_type = NAND_ECC_ENGINE_TYPE_SOFT;
 		ecc->algo = NAND_ECC_ALGO_BCH;
 		ecc->bytes = 13;
@@ -933,7 +933,7 @@ static int iwave_nand_ecc_init(struct mtd_info *mtd, struct nand_ecc_ctrl *ecc,
 		mtd_set_ooblayout(mtd, nand_get_large_page_ooblayout());
 #endif
 
-#ifdef CONFIG_MTD_NAND_RAW_IWAVE
+#if IS_ENABLED(CONFIG_MTD_NAND_RAW_IWAVE)
 		ecc->engine_type = NAND_ECC_ENGINE_TYPE_NONE;
 		ecc->write_page = iwave_nand_write_page_raw;
 		ecc->read_page = iwave_nand_read_page_raw;
@@ -1228,7 +1228,7 @@ static int iwave_nand_probe(struct platform_device *pdev)
 	/* Set the device option and flash width */
 	platform_set_drvdata(pdev, xnfc);
 
-#ifdef CONFIG_MTD_NAND_HW_ECC_IWAVE
+#if IS_ENABLED(CONFIG_MTD_NAND_HW_ECC_IWAVE)
 	writel(0x0, xnfc->regs + IW_NAND_ECC_EL_DL_OFFS);
 #else
 	writel(0x1, xnfc->regs + IW_NAND_ECC_EL_DL_OFFS);
