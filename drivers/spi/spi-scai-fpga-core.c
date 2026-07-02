@@ -642,6 +642,7 @@ static struct platform_driver scai_fpgaqspi_driver = {
 };
 
 module_platform_driver(scai_fpgaqspi_driver);
-MODULE_AUTHOR("Sourav Poddar <sourav.poddar@ti.com>");
-MODULE_DESCRIPTION("TI QSPI controller driver");
+MODULE_AUTHOR("Kwangsu Jung <kwangsu.jung@tii.ae>");
+MODULE_AUTHOR("Kwangsu Jung <kwangsu.jung@unikie.com>");
+MODULE_DESCRIPTION("Microchip PolarFire SoC SPI SCAI FPAG driver");
 MODULE_LICENSE("GPL");
