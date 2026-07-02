@@ -65,9 +65,9 @@
 
 		dma_non_cached_low: non-cached-low-buffer {
 			compatible = "shared-dma-pool";
-			size = <0x0 0x2000000>;
+			size = <0x0 0x1000000>;
 			no-map;
-			alloc-ranges = <0x0 0xc2000000 0x0 0x2000000>;
+			alloc-ranges = <0x0 0xc3000000 0x0 0x1000000>;
 		};
 
 		dma_non_cached_high: non-cached-high-buffer {
@@ -99,6 +99,12 @@
 		shm_uio4: shm@0xc1800000 {
 			compatible = "shared-dma-pool";
 			reg = <0x0 0xc1800000 0x0 0x800000>;
+			no-map;
+		};
+
+		hss_buffer: hss-buffer@c2000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x0 0xc2000000 0x0 0x1000000>;
 			no-map;
 		};
 
@@ -144,6 +150,12 @@
 	uio4 {
 		compatible = "generic-uio";
 		memory-region = <&shm_uio4>;
+		status = "okay";
+	};
+
+	scai_tm_rproc@0 {
+		compatible = "tii,scai-tm-rproc";
+		memory-region = <&hss_buffer>;
 		status = "okay";
 	};
 
