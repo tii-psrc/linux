@@ -40,6 +40,7 @@ struct scai_tm_rproc_drv {
 };
 
 struct user_data {
+	unsigned long arg1;
 	long size;
 	void *buf;
 };
@@ -66,11 +67,12 @@ static long scai_tm_rproc_misc_ioctl(struct file *file,
 				   (void __user *)arg,
 				   sizeof(user_data)))
 			return -EFAULT;
+		pr_info("%s: arg1=0x%x\n", __func__, user_data.arg1);
 
 		ret = sbi_ecall(SBI_EXT_MICROCHIP_TECHNOLOGY,
 				SBI_EXT_TELEMETRY_RPROC_COMMAND,
 				(unsigned long)drv->phys_addr,
-				0, 0, 0, 0, 0);
+				user_data.arg1, 0, 0, 0, 0);
 		break;
 
 	default:
