@@ -64,9 +64,9 @@
 
 		dma_non_cached_low: non-cached-low-buffer {
 			compatible = "shared-dma-pool";
-			size = <0x0 0x4000000>;
+			size = <0x0 0x3000000>;
 			no-map;
-			alloc-ranges = <0x0 0xc0000000 0x0 0x04000000>;
+			alloc-ranges = <0x0 0xc1000000 0x0 0x03000000>;
 		};
 
 		dma_non_cached_high: non-cached-high-buffer {
@@ -75,6 +75,13 @@
 			no-map;
 			linux,dma-default;
 			alloc-ranges = <0x14 0x00000000 0x0 0x10000000>;
+		};
+
+
+		hss_buffer: hss-buffer@c0000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x0 0xc0000000 0x0 0x1000000>;
+			no-map;
 		};
 
     /*
@@ -96,6 +103,13 @@
 			no-map;
 		};
     */
+	};
+
+
+	scai_tm_rproc@0 {
+		compatible = "tii,scai-tm-rproc";
+		memory-region = <&hss_buffer>;
+		status = "okay";
 	};
 
   /*
