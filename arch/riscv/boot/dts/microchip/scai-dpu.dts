@@ -227,11 +227,9 @@
 };
 */
 
-/*
 &gpio2 {
-	status = "disabled";
+	status = "okay";
 };
-*/
 
 /*
 &i2c0 {
