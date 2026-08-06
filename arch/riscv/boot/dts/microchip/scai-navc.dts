@@ -64,9 +64,9 @@
 
 		dma_non_cached_low: non-cached-low-buffer {
 			compatible = "shared-dma-pool";
-			size = <0x0 0x3000000>;
+			size = <0x0 0x1000000>;
 			no-map;
-			alloc-ranges = <0x0 0xc1000000 0x0 0x03000000>;
+			alloc-ranges = <0x0 0xc1000000 0x0 0x01000000>;
 		};
 
 		dma_non_cached_high: non-cached-high-buffer {
@@ -81,6 +81,18 @@
 		hss_buffer: hss-buffer@c0000000 {
 			compatible = "shared-dma-pool";
 			reg = <0x0 0xc0000000 0x0 0x1000000>;
+			no-map;
+		};
+
+		/*
+		 * Frames the camera FPGA design DMAs into. No driver claims
+		 * this via memory-region: the camera driver reads the target
+		 * address back from the FPGA APB registers and ioremaps it,
+		 * so the reservation only has to keep Linux out of the range.
+		 */
+		cambuf0: buffer@c2000000 {
+			compatible = "shared-dma-pool";
+			reg = <0x0 0xc2000000 0x0 0x2000000>;
 			no-map;
 		};
 
