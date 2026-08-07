@@ -31,6 +31,12 @@ enum {
 	SBI_EXT_TELEMETRY_RPROC_COMMAND = 0x14
 };
 
+enum sbi_tm_ext_cmd {
+	SBI_TM_EXT_CONCISE = 0x0,
+	SBI_TM_EXT_VERBOSE = 0x1,
+	SBI_TM_EXT_STOP_PUBLISHING = 0x2,
+};
+
 struct scai_tm_rproc_drv {
 	struct device *dev;
 	struct miscdevice misc;
@@ -81,6 +87,9 @@ static long scai_tm_rproc_misc_ioctl(struct file *file,
 
 	if (ret.error)
 		return sbi_err_map_linux_errno(ret.error);
+
+	if (user_data.arg1 == SBI_TM_EXT_STOP_PUBLISHING)
+		return 0;
 
 	copy_size = min_t(long, ret.value, user_data.size);
 
