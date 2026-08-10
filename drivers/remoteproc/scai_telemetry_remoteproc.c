@@ -31,6 +31,12 @@ enum {
 	SBI_EXT_TELEMETRY_RPROC_COMMAND = 0x14
 };
 
+enum sbi_tm_ext_cmd {
+	SBI_TM_EXT_CONCISE = 0x0,
+	SBI_TM_EXT_VERBOSE = 0x1,
+	SBI_TM_EXT_STOP_PUBLISHING = 0x2,
+};
+
 struct scai_tm_rproc_drv {
 	struct device *dev;
 	struct miscdevice misc;
@@ -40,7 +46,7 @@ struct scai_tm_rproc_drv {
 };
 
 struct user_data {
-	unsigned long arg1;
+	unsigned long arg0;
 	long size;
 	void *buf;
 };
@@ -67,12 +73,12 @@ static long scai_tm_rproc_misc_ioctl(struct file *file,
 				   (void __user *)arg,
 				   sizeof(user_data)))
 			return -EFAULT;
-		pr_info("%s: arg1=0x%x\n", __func__, user_data.arg1);
+		pr_info("%s: arg0=0x%x\n", __func__, user_data.arg0);
 
 		ret = sbi_ecall(SBI_EXT_MICROCHIP_TECHNOLOGY,
 				SBI_EXT_TELEMETRY_RPROC_COMMAND,
-				(unsigned long)drv->phys_addr,
-				user_data.arg1, 0, 0, 0, 0);
+				user_data.arg0,
+				(unsigned long)drv->phys_addr, 0, 0, 0, 0);
 		break;
 
 	default:
@@ -81,6 +87,9 @@ static long scai_tm_rproc_misc_ioctl(struct file *file,
 
 	if (ret.error)
 		return sbi_err_map_linux_errno(ret.error);
+
+	if (user_data.arg0 == SBI_TM_EXT_STOP_PUBLISHING)
+		return 0;
 
 	copy_size = min_t(long, ret.value, user_data.size);
 
