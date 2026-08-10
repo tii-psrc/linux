@@ -77,8 +77,8 @@ static long scai_tm_rproc_misc_ioctl(struct file *file,
 
 		ret = sbi_ecall(SBI_EXT_MICROCHIP_TECHNOLOGY,
 				SBI_EXT_TELEMETRY_RPROC_COMMAND,
-				(unsigned long)drv->phys_addr,
-				user_data.arg1, 0, 0, 0, 0);
+				user_data.arg1,
+				(unsigned long)drv->phys_addr, 0, 0, 0, 0);
 		break;
 
 	default:
