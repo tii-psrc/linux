@@ -6,6 +6,7 @@
 #include "mpfs.dtsi"
 #include "scai-navc-fabric.dtsi"
 #include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/leds/common.h>
 
 /* Clock frequency (in Hz) of the rtcclk */
@@ -170,6 +171,26 @@
 		device-name = "scai_mtd_b";
 	};
 
+	/*
+	 * Handshake with the FPGA imaging pipeline. A rising edge on
+	 * frame-trigger-gpios asks the fabric to run one pass: it grabs a raw
+	 * frame and writes every intermediate output (greyscale, histogram,
+	 * features, undistorted) into the shared DDR region reserved above as
+	 * cambuf0. When all of them are written the fabric raises the
+	 * interrupt line.
+	 *
+	 * Both lines are MSS GPIO_2 pins set to Fabric I/O in the MSS
+	 * configurator: GPIO_2_0 as an input (the interrupt) and GPIO_2_1 as
+	 * an output (the trigger). Their direction there must agree with the
+	 * use here.
+	 */
+	imx900_stereo {
+		compatible = "tii,imx900-stereo";
+		frame-trigger-gpios = <&gpio2 1 GPIO_ACTIVE_HIGH>;
+		interrupts-extended = <&gpio2 0 IRQ_TYPE_EDGE_RISING>;
+		status = "okay";
+	};
+
 };
 
 /*
@@ -211,10 +232,13 @@
 */
 
 /*
+ * Needed for the imaging pipeline handshake: GPIO_2_0 is the completion
+ * interrupt from the fabric and GPIO_2_1 the pipeline trigger. See the
+ * imx900_stereo node above.
+ */
 &gpio2 {
-	status = "disabled";
+	status = "okay";
 };
-*/
 
 /*
 &i2c0 {
