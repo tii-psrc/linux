@@ -68,7 +68,7 @@ static long scai_tm_rproc_misc_ioctl(struct file *file,
 	long copy_size;
 	int err;
 
-	pr_info("%s: cmd=0x%x\n", __func__, cmd);
+	pr_debug("%s: cmd=0x%x\n", __func__, cmd);
 
 	memset_io(drv->cpu_addr, 0, drv->size);
 
@@ -79,7 +79,7 @@ static long scai_tm_rproc_misc_ioctl(struct file *file,
 				   (void __user *)arg,
 				   sizeof(user_data)))
 			return -EFAULT;
-		pr_info("%s: arg0=0x%x\n", __func__, user_data.arg0);
+		pr_debug("%s: arg0=0x%x\n", __func__, user_data.arg0);
 
 		if (user_data.arg0 == SBI_TM_EXT_CONCISE ||
 				user_data.arg0 == SBI_TM_EXT_VERBOSE) {
@@ -107,13 +107,12 @@ static long scai_tm_rproc_misc_ioctl(struct file *file,
 
 	copy_size = min_t(long, ret.value, user_data.size);
 
-	pr_info("buffer=%p user=%p size=%ld actual=%ld\n",
+	pr_debug("buffer=%p user=%p size=%ld actual=%ld\n",
 		drv->cpu_addr,
 		user_data.buf,
 		user_data.size,
 		copy_size);
-	print_hex_dump(KERN_INFO,
-			"HSS BUF: ",
+	print_hex_dump_debug("HSS BUF: ",
 			DUMP_PREFIX_OFFSET,
 			16,
 			1,
