@@ -179,14 +179,25 @@
 	 * cambuf0. When all of them are written the fabric raises the
 	 * interrupt line.
 	 *
-	 * Both lines are MSS GPIO_2 pins set to Fabric I/O in the MSS
-	 * configurator: GPIO_2_0 as an input (the interrupt) and GPIO_2_1 as
-	 * an output (the trigger). Their direction there must agree with the
-	 * use here.
+	 * Both lines are MSS GPIO_2 pins routed to the fabric ("Fabric I/O" in
+	 * the MSS configurator): GPIO_2_0 carries the completion signal and
+	 * GPIO_2_1 the trigger. Whichever direction that configurator leaves
+	 * them at is what Linux finds at boot, which is why the completion
+	 * line is described as a gpio as well as an interrupt below.
 	 */
 	imx900_stereo {
 		compatible = "tii,imx900-stereo";
 		frame-trigger-gpios = <&gpio2 1 GPIO_ACTIVE_HIGH>;
+
+		/*
+		 * The completion line is given as a gpio as well as an
+		 * interrupt. Taking it as an input descriptor sets the
+		 * controller's direction bit before anything locks the line as
+		 * an interrupt, which gpiolib refuses for a line that reads
+		 * back as an output. Which way these pins come up is decided
+		 * by the MSS configurator, so the driver cannot assume it.
+		 */
+		pipeline-done-gpios = <&gpio2 0 GPIO_ACTIVE_HIGH>;
 		interrupts-extended = <&gpio2 0 IRQ_TYPE_EDGE_RISING>;
 		status = "okay";
 	};
